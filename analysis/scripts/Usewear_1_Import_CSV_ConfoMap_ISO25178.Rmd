@@ -1,0 +1,390 @@
+---
+title: "Import CSV from ConfoMap ISO25178 - use-wear archaeology"
+author: "Ivan Calandra & Lisa Schunk"
+date: "`r Sys.time()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    theme: cerulean
+    highlight: pygments
+    number_sections: true
+  github_document: 
+    toc: true
+    toc_depth: 3
+    html_preview: false
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", knit_root_dir = rprojroot::find_rstudio_root_file()) })
+---
+
+
+```{r Knitr Options, include=FALSE}
+knitr::opts_chunk$set(comment = NA, message = FALSE, indent = "", error = TRUE)
+```
+
+---
+
+
+# Goal of the script
+This script formats the output of the resulting CSV-file from applying a template computing ISO25178 parameters in ConfoMap.
+The script will:
+
+1. Read in the original CSV-file (step #3)  
+2. Format the data (step #4)  
+3. Write an XLSX-file and save an R object ready for further analysis in R (step #5)
+
+```{r}
+dir_in <- "analysis/raw_data"
+dir_out <- "analysis/derived_data/"
+```
+
+Raw data must be located in `r paste0("~/", dir_in)`.  
+Formatted data will be saved in `r paste0("~/", dir_out)`.
+
+The knit directory for this script is the project directory.
+
+---
+
+
+# Load packages
+```{r}
+library(openxlsx)
+library(tools)
+library(R.utils)
+library(chron)
+library(tidyverse)
+```
+
+
+---
+
+
+# Get names, path and information of all files 
+```{r}
+data_files <- list.files(dir_in, pattern = "\\.csv$", full.names = TRUE)
+md5_in <- md5sum(data_files)
+info_in <- data.frame(files = basename(names(md5_in)), checksum = md5_in, row.names = NULL)
+```
+
+The checksum (MD5 hashes) of the imported files are:  
+```{r, echo = FALSE}
+info_in
+```
+
+
+---
+
+
+# Read in original CSV-files
+```{r}
+imp_data <- vector(mode = "list", length = length(data_files))
+names(imp_data) <- basename(data_files)
+# loop for import data due to the three different CSV files 
+for (i in seq_along(data_files)) {
+  imp_data[[i]] <- read.csv2(data_files[i], header = FALSE, stringsAsFactors = FALSE, na.strings = "*****")
+}
+str(imp_data)
+```
+
+
+---
+
+
+# Format data
+## Merge three datasets
+```{r}
+# check pairwisely if the three lines of headers are identical among the datasets
+# merges the data based on the three lines of headers while they got only use in the first CSV file 
+comp <- all(sapply(list(imp_data[[1]][1:3, ], imp_data[[2]][1:3, ]), FUN = identical, imp_data[[3]][1:3, ]))
+if (comp == TRUE) {
+  merged_data <- rbind(imp_data[[1]], imp_data[[2]][-(1:3), ], imp_data[[3]][-(1:3), ])
+} else {
+  stop("The headers are not identical among the datasets")
+}
+str(merged_data)
+```
+
+
+## Keep only interesting columns and rows
+```{r}
+# keeps only the columns and rows of interest for the analysis 
+data_keep_col <- c(1:2, 16:17, 20:22, 24:26, 29:32, 67:100)
+data_keep_rows <- which(merged_data[[1]] != "#")  
+data_keep <- merged_data[data_keep_rows, data_keep_col]
+```
+
+
+## Add headers
+```{r}
+head_data_keep <- unlist(merged_data[2, data_keep_col]) 
+colnames(data_keep) <- gsub("\\.+", "\\.", make.names(head_data_keep))
+colnames(data_keep) <- gsub("\\.$", "", colnames(data_keep)) 
+```
+
+
+## Identify results using frame numbers
+```{r}
+# combines the results from the different analysis based on the column numbers (ID from MountainsMAp)
+frames <- as.numeric(unlist(merged_data[1, data_keep_col]))
+ID <- which(frames == 6)[-(1:2)]
+ISO <- which(frames == 17)
+furrow <- which(frames == 18)
+diriso <- which(frames %in% 19:20)
+SSFA <- which(frames %in% 21:22)
+```
+
+
+## Shorten the names for parameters
+```{r}
+# keeps only the important information of the headers 
+colnames(data_keep)[ISO] <- sapply(strsplit(names(data_keep)[ISO], ".", fixed = TRUE), `[[`, 1)
+colnames(data_keep)[SSFA] <- gsub("^([A-Za-z0-9]+\\.)+", "", colnames(data_keep)[SSFA])
+```
+
+
+## Save units
+```{r}
+# takes the units which were part of the headers and separates them; creates a data frame
+var_num <- c(ID, ISO, furrow, diriso, SSFA)
+units_var <- unlist(merged_data[3, data_keep_col])[var_num] #extract 'unit' line for considered columns
+names(units_var) <- head_data_keep[var_num] #get names associated to the units
+units_var_table <- data.frame(variable = names(units_var), unit = units_var) #put all of it into a data.frame
+```
+
+
+## Convert to numeric
+```{r}
+for (i in var_num) {
+  data_keep[[i]] <- gsub(",", "\\.", data_keep[[i]])
+  data_keep[[i]] <- as.numeric(data_keep[[i]])
+}
+```
+
+
+## Split the column 'Name' into several columns
+```{r}
+# these lines extract the artefact ID out of the path name
+stud_name <- gsub("^([A-Za-z0-9_]+( --- ))+", "", data_keep[["Name"]])
+stud_name <- gsub("([A-Za-z0-9_-]*( - ))+", "", stud_name)
+split_name <- do.call(rbind, strsplit(stud_name, "_"))[, 1:3]
+split_loc <- do.call(rbind, strsplit(split_name[, 2], "-"))
+# splits location (A1-3,B1-3,C1-3,D1-3) in location (A,B,C,D) and sublocation (1,2,3,4)
+split_subloc1 <- substr(split_loc[,1], 1, 1)
+split_subloc2 <- substr(split_loc[,1], 2, 2)
+
+
+# splits the ID in the separat information 
+data_final <- data.frame(split_name[, -2], split_subloc1, split_subloc2, split_loc[, 2-3], data_keep[-3], stringsAsFactors = FALSE)
+colnames(data_final)[1:9] <- c("Sample", "Objective", "Location", "Sublocation", "Area", "Spot", "Analysis.date", "Analysis.time", "Acquisition.date.time")
+
+```
+
+
+## Format date and time columns
+```{r}
+data_final[["Analysis.date"]] <- as.Date(data_final[["Analysis.date"]], format = "%d.%m.%Y")
+data_final[["Analysis.time"]] <- times(data_final[["Analysis.time"]])
+```
+The column `data_final[["Acquisition.date.time"]]` includes several formats and is therefore left as `character` without convertion to `POSIXct`.
+
+
+## Add columns about site and correct 50x objectives' NAs
+```{r}
+# extracte the site name based on the ID
+data_final[grep("R-0", data_final[["Sample"]]), "Site"] <- "Ramioul"
+data_final[grep("MU-", data_final[["Sample"]]), "Site"] <- "Balve"
+data_final[grep("BU-", data_final[["Sample"]]), "Site"] <- "Buhlen"
+data_final[["Site"]] <- factor(data_final[["Site"]])
+
+# adds the raw material by defining the flint samples, everything else is lydite 
+#data_final[["Sample"]] <- factor(ifelse(data_final[["Sample"]] == "MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013", 
+                                 labels = c("flint", "lydite")))
+
+#data.final[["Before.after"]] <- factor(ifelse(data.final[["Mode"]]=="LSM2", "After", "Before"), labels=c("Before","After"))
+
+
+#MU-197|R-002|R-006|R-007|R-008|R-010|R-013
+
+# add the tool type - Keilmesser
+data_final[grep("MU-003", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-008", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-020", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-021", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-041", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-107", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-111", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-112", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-199", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-202", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-224", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-232", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-197", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-240", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-246", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("MU-273", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+
+data_final[grep("R-002", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("R-006", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("R-007", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("R-008", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("R-020", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+
+data_final[grep("BU-003", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("BU-032", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("BU-077", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+data_final[grep("BU-173", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
+
+# add the tool type - Prądnick spall
+data_final[grep("MU-104", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+data_final[grep("MU-119", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+data_final[grep("MU-217", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+
+data_final[grep("BU-128", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+
+# add the tool type - Scraper 
+data_final[grep("MU-019", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
+data_final[grep("MU-025", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
+data_final[grep("MU-279", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
+
+data_final[grep("R-013", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
+
+
+# add the tool type - Prądnick scraper 
+data_final[grep("R-010", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
+
+data_final[grep("BU-115", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
+data_final[["Tool.type"]] <- factor(data_final[["Tool.type"]])
+
+# add the use-wear type - Balve 
+data_final[grepl("MU-003", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "B"
+data_final[grepl("MU-008", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-020", data_final[["Sample"]]) & grepl("A1", data_final[["Location"]]), "Use-wear.type"] <- "D"
+data_final[grepl("MU-020", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "D2"
+data_final[grepl("MU-021", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "B"
+data_final[grepl("MU-021", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "D2"
+data_final[grepl("MU-041", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-041", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-107", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-107", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-111", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-112", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-199", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-199", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-202", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "A"
+data_final[grepl("MU-202", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-224", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "B2"
+data_final[grepl("MU-224", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("MU-232", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]) & grepl("1", data_final[["Area"]]), "Use-wear.type"] <- "E"
+data_final[grepl("MU-232", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]) & grepl("2", data_final[["Area"]]), "Use-wear.type"] <- "A"
+data_final[grepl("MU-197", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "F"
+data_final[grepl("MU-197", data_final[["Sample"]]) & grepl("D3", data_final[["Location"]]), "Use-wear.type"] <- "F"
+data_final[grepl("MU-240", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C+A"
+data_final[grepl("MU-240", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "F"
+data_final[grepl("MU-246", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
+data_final[grepl("MU-273", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
+data_final[grepl("MU-019", data_final[["Sample"]]) & grepl("A3", data_final[["Location"]]), "Use-wear.type"] <- "B2"
+data_final[grepl("MU-025", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "B"
+data_final[grepl("MU-279", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+
+# add the use-wear type - Ramioul 
+data_final[grepl("R-002", data_final[["Sample"]]) & grepl("A1", data_final[["Location"]]), "Use-wear.type"] <- "D"
+data_final[grepl("R-006", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "E"
+data_final[grepl("R-007", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "G"
+data_final[grepl("R-008", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "D"
+data_final[grepl("R-020", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "A"
+data_final[grepl("R-020", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "G"
+data_final[grepl("R-010", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("R-010", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
+data_final[grepl("R-013", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "G"
+data_final[grepl("R-013", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "D2"
+
+# add the use-wear type - Buhlen
+data_final[grepl("BU-003", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("BU-032", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "D2"
+data_final[grepl("BU-077", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
+data_final[grepl("BU-173", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("BU-128", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[grepl("BU-115", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+#data_final[["Use-wear.type"]] <- factor(data_final[["Use-wear.type"]])
+
+# correct information about the used objectives 
+data_final[data_final[["Objective"]] == "50x09", "Objective"] <- "50x095"
+data_final[data_final[["Objective"]] == "50x07", "Objective"] <- "50x075"
+data_final[["Objective"]] <- factor(data_final[["Objective"]])
+```
+
+
+## Ignore some columns and reorder columns
+```{r}
+data_final <- data_final[c(53, 1, 3:5, 2, 8, 6:7, 9:52)]
+```
+
+
+## Add units as comment()
+```{r}
+comment(data_final) <- units_var
+```
+
+Type `comment(data_final)` to check the units of the columns.
+
+
+## Check the result
+```{r}
+str(data_final)
+head(data_final)
+```
+
+
+---
+
+
+# Save data
+## Format name of output file
+```{r}
+file_out <- "Use-wear"
+```
+The files will be saved as "`r paste0("~/", file_out, ".[ext]")`".
+
+
+## Write to XLSX
+```{r}
+write.xlsx(list(data = data_final, units = units_var_table), file = paste0(dir_out, file_out, ".xlsx"))
+```
+
+
+## Save R object
+```{r}
+saveObject(data_final, file = paste0(dir_out, file_out, ".Rbin"))
+```
+
+
+## Show files information
+```{r}
+files_out <- c(paste0(dir_out, file_out, ".xlsx"), paste0(dir_out, file_out, ".Rbin"))
+md5_out <- md5sum(files_out)
+info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, row.names = NULL)
+```
+
+
+The checksum (MD5 hashes) of the exported files are:  
+```{r, echo = FALSE}
+info_out
+```
+
+
+---
+
+# sessionInfo() and RStudio version
+
+```{r}
+sessionInfo()
+```
+
+RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.
+
+
+---
+
+
+END OF SCRIPT
