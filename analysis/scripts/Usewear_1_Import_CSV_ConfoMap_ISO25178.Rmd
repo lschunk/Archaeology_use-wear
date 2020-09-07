@@ -198,13 +198,11 @@ data_final[grep("BU-", data_final[["Sample"]]), "Site"] <- "Buhlen"
 data_final[["Site"]] <- factor(data_final[["Site"]])
 
 # adds the raw material by defining the flint samples, everything else is lydite 
-#data_final[["Sample"]] <- factor(ifelse(data_final[["Sample"]] == "MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013", 
-                                 labels = c("flint", "lydite")))
+data_final[["Sample"]] <- factor(ifelse(data_final[["Sample"]] %in% c("MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013"),  
+                                          labels = c("flint", "lydite")))
+data_final[["Sample"]] <- factor(ifelse(grepl(pattern = "MU-197|R-002|R-006|R-007|R-008|R-010|R-013", data_final[["Raw.material"]]), "flint", "lydite"))
 
-#data.final[["Before.after"]] <- factor(ifelse(data.final[["Mode"]]=="LSM2", "After", "Before"), labels=c("Before","After"))
 
-
-#MU-197|R-002|R-006|R-007|R-008|R-010|R-013
 
 # add the tool type - Keilmesser
 data_final[grep("MU-003", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
