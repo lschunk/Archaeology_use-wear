@@ -82,7 +82,7 @@ imp_data <- vector(mode = "list", length = length(data_files))
 names(imp_data) <- basename(data_files)
 # loop for import data due to the three different CSV files 
 for (i in seq_along(data_files)) {
-  imp_data[[i]] <- read.csv2(data_files[i], header = FALSE, stringsAsFactors = FALSE, na.strings = "*****")
+  imp_data[[i]] <- read.csv(data_files[i], header = FALSE, stringsAsFactors = FALSE, na.strings = "*****")
 }
 str(imp_data)
 ```
@@ -290,7 +290,7 @@ data_final[data_final[["Sample"]] == "R-006" & data_final[["Location"]] == "C" &
 data_final[data_final[["Sample"]] == "R-007" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "G"
 data_final[data_final[["Sample"]] == "R-008" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
 data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
-data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "G"
 data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
 data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
 data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "G"
