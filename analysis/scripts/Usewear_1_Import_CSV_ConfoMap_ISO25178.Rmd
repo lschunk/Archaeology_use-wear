@@ -198,11 +198,7 @@ data_final[grep("BU-", data_final[["Sample"]]), "Site"] <- "Buhlen"
 data_final[["Site"]] <- factor(data_final[["Site"]])
 
 # adds the raw material by defining the flint samples, everything else is lydite 
-data_final[["Sample"]] <- factor(ifelse(data_final[["Sample"]] %in% c("MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013"),  
-                                          labels = c("flint", "lydite")))
-data_final[["Sample"]] <- factor(ifelse(grepl(pattern = "MU-197|R-002|R-006|R-007|R-008|R-010|R-013", data_final[["Raw.material"]]), "flint", "lydite"))
-
-
+data_final[["Raw.material"]] <- factor(ifelse(data_final[["Sample"]] %in% c("MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013"), "flint", "lydite"))
 
 # add the tool type - Keilmesser
 data_final[grep("MU-003", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
@@ -255,56 +251,59 @@ data_final[grep("BU-115", data_final[["Sample"]]), "Tool.type"] <- "Prądnick sc
 data_final[["Tool.type"]] <- factor(data_final[["Tool.type"]])
 
 # add the use-wear type - Balve 
-data_final[grepl("MU-003", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "B"
-data_final[grepl("MU-008", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-020", data_final[["Sample"]]) & grepl("A1", data_final[["Location"]]), "Use-wear.type"] <- "D"
-data_final[grepl("MU-020", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "D2"
-data_final[grepl("MU-021", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "B"
-data_final[grepl("MU-021", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "D2"
-data_final[grepl("MU-041", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-041", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-107", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-107", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-111", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-112", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-199", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-199", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-202", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "A"
-data_final[grepl("MU-202", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-224", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "B2"
-data_final[grepl("MU-224", data_final[["Sample"]]) & grepl("B1", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("MU-232", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]) & grepl("1", data_final[["Area"]]), "Use-wear.type"] <- "E"
-data_final[grepl("MU-232", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]) & grepl("2", data_final[["Area"]]), "Use-wear.type"] <- "A"
-data_final[grepl("MU-197", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "F"
-data_final[grepl("MU-197", data_final[["Sample"]]) & grepl("D3", data_final[["Location"]]), "Use-wear.type"] <- "F"
-data_final[grepl("MU-240", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C+A"
-data_final[grepl("MU-240", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "F"
-data_final[grepl("MU-246", data_final[["Sample"]]) & grepl("D1", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
-data_final[grepl("MU-273", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
-data_final[grepl("MU-019", data_final[["Sample"]]) & grepl("A3", data_final[["Location"]]), "Use-wear.type"] <- "B2"
-data_final[grepl("MU-025", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "B"
-data_final[grepl("MU-279", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-003" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-008" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
+data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-111" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-112" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
+data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "B2"
+data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] == "01", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] == "02", "Use-wear.type"] <- "A"
+data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C+A"
+data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-246" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-273" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-019" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "B2"
+data_final[data_final[["Sample"]] == "MU-025" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-279" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-104" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-119" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-217" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
 
 # add the use-wear type - Ramioul 
-data_final[grepl("R-002", data_final[["Sample"]]) & grepl("A1", data_final[["Location"]]), "Use-wear.type"] <- "D"
-data_final[grepl("R-006", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "E"
-data_final[grepl("R-007", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "G"
-data_final[grepl("R-008", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "D"
-data_final[grepl("R-020", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "A"
-data_final[grepl("R-020", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "G"
-data_final[grepl("R-010", data_final[["Sample"]]) & grepl("B2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("R-010", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
-data_final[grepl("R-013", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "G"
-data_final[grepl("R-013", data_final[["Sample"]]) & grepl("C3", data_final[["Location"]]), "Use-wear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "R-002" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
+data_final[data_final[["Sample"]] == "R-006" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "E"
+data_final[data_final[["Sample"]] == "R-007" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-008" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
+data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
+data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "D2"
 
 # add the use-wear type - Buhlen
-data_final[grepl("BU-003", data_final[["Sample"]]) & grepl("C1", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("BU-032", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "D2"
-data_final[grepl("BU-077", data_final[["Sample"]]) & grepl("B3", data_final[["Location"]]), "Use-wear.type"] <- "C/E"
-data_final[grepl("BU-173", data_final[["Sample"]]) & grepl("C2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("BU-128", data_final[["Sample"]]) & grepl("D2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-data_final[grepl("BU-115", data_final[["Sample"]]) & grepl("A2", data_final[["Location"]]), "Use-wear.type"] <- "C"
-#data_final[["Use-wear.type"]] <- factor(data_final[["Use-wear.type"]])
+data_final[data_final[["Sample"]] == "BU-003" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-032" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "BU-077" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "BU-173" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-128" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-115" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
+data_final[["Use-wear.type"]] <- factor(data_final[["Use-wear.type"]])
 
 # correct information about the used objectives 
 data_final[data_final[["Objective"]] == "50x09", "Objective"] <- "50x095"
@@ -315,7 +314,7 @@ data_final[["Objective"]] <- factor(data_final[["Objective"]])
 
 ## Ignore some columns and reorder columns
 ```{r}
-data_final <- data_final[c(53, 1, 3:5, 2, 8, 6:7, 9:52)]
+data_final <- data_final[c(1,54, 56, 55, 3:6, 57, 2, 7:53 )]
 ```
 
 
