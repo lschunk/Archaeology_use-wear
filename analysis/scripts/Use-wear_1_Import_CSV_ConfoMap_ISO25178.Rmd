@@ -15,7 +15,8 @@ output:
     toc_depth: 3
     html_preview: false
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", knit_root_dir = rprojroot::find_rstudio_root_file()) })
+  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", 
+  knit_root_dir = rprojroot::find_rstudio_root_file()) })
 ---
 
 
@@ -27,12 +28,13 @@ knitr::opts_chunk$set(comment = NA, message = FALSE, indent = "", error = TRUE)
 
 
 # Goal of the script
-This script formats the output of the resulting CSV-file from applying a template computing ISO25178 parameters in ConfoMap.
+This script formats the output of the resulting CSV-files from applying a template
+computing ISO25178 parameters in ConfoMap.
 The script will:
 
-1. Read in the original CSV-file (step #3)  
-2. Format the data (step #4)  
-3. Write an XLSX-file and save an R object ready for further analysis in R (step #5)
+1. Read in the original CSV-files
+2. Format the data   
+3. Write an XLSX-file and save an R object ready for further analysis in R 
 
 ```{r}
 dir_in <- "analysis/raw_data"
@@ -64,7 +66,8 @@ library(tidyverse)
 ```{r}
 data_files <- list.files(dir_in, pattern = "\\.csv$", full.names = TRUE)
 md5_in <- md5sum(data_files)
-info_in <- data.frame(files = basename(names(md5_in)), checksum = md5_in, row.names = NULL)
+info_in <- data.frame(files = basename(names(md5_in)), checksum = md5_in, 
+                      row.names = NULL)
 ```
 
 The checksum (MD5 hashes) of the imported files are:  
@@ -82,7 +85,8 @@ imp_data <- vector(mode = "list", length = length(data_files))
 names(imp_data) <- basename(data_files)
 # loop for import data due to the three different CSV files 
 for (i in seq_along(data_files)) {
-  imp_data[[i]] <- read.csv(data_files[i], header = FALSE, stringsAsFactors = FALSE, na.strings = "*****")
+  imp_data[[i]] <- read.csv(data_files[i], header = FALSE, 
+                            stringsAsFactors = FALSE, na.strings = "*****")
 }
 str(imp_data)
 ```
@@ -95,10 +99,13 @@ str(imp_data)
 ## Merge three datasets
 ```{r}
 # check pairwisely if the three lines of headers are identical among the datasets
-# merges the data based on the three lines of headers while they got only use in the first CSV file 
-comp <- all(sapply(list(imp_data[[1]][1:3, ], imp_data[[2]][1:3, ]), FUN = identical, imp_data[[3]][1:3, ]))
+# merges the data based on the three lines of headers while they get only 
+# used in the first CSV file 
+comp <- all(sapply(list(imp_data[[1]][1:3, ], imp_data[[2]][1:3, ]), 
+                   FUN = identical, imp_data[[3]][1:3, ]))
 if (comp == TRUE) {
-  merged_data <- rbind(imp_data[[1]], imp_data[[2]][-(1:3), ], imp_data[[3]][-(1:3), ])
+  merged_data <- rbind(imp_data[[1]], imp_data[[2]][-(1:3), ], 
+                       imp_data[[3]][-(1:3), ])
 } else {
   stop("The headers are not identical among the datasets")
 }
@@ -125,7 +132,8 @@ colnames(data_keep) <- gsub("\\.$", "", colnames(data_keep))
 
 ## Identify results using frame numbers
 ```{r}
-# combines the results from the different analysis based on the column numbers (ID from MountainsMAp)
+# combines the results from the different analysis based on the column 
+# numbers (ID from MountainsMAp)
 frames <- as.numeric(unlist(merged_data[1, data_keep_col]))
 ID <- which(frames == 6)[-(1:2)]
 ISO <- which(frames == 17)
@@ -138,18 +146,23 @@ SSFA <- which(frames %in% 21:22)
 ## Shorten the names for parameters
 ```{r}
 # keeps only the important information of the headers 
-colnames(data_keep)[ISO] <- sapply(strsplit(names(data_keep)[ISO], ".", fixed = TRUE), `[[`, 1)
+colnames(data_keep)[ISO] <- sapply(strsplit(names(data_keep)[ISO], ".", fixed = TRUE),
+                                   `[[`, 1)
 colnames(data_keep)[SSFA] <- gsub("^([A-Za-z0-9]+\\.)+", "", colnames(data_keep)[SSFA])
 ```
 
 
 ## Save units
 ```{r}
-# takes the units which were part of the headers and separates them; creates a data frame
+# takes the units which were part of the headers and separates them; 
+# creates a data frame
 var_num <- c(ID, ISO, furrow, diriso, SSFA)
-units_var <- unlist(merged_data[3, data_keep_col])[var_num] #extract 'unit' line for considered columns
-names(units_var) <- head_data_keep[var_num] #get names associated to the units
-units_var_table <- data.frame(variable = names(units_var), unit = units_var) #put all of it into a data.frame
+#extract 'unit' line for considered columns
+units_var <- unlist(merged_data[3, data_keep_col])[var_num] 
+# gets names associated to the units
+names(units_var) <- head_data_keep[var_num] 
+# puts all of it into a data.frame
+units_var_table <- data.frame(variable = names(units_var), unit = units_var) 
 ```
 
 
@@ -175,21 +188,26 @@ split_subloc2 <- substr(split_loc[,1], 2, 2)
 
 
 # splits the ID in the separat information 
-data_final <- data.frame(split_name[, -2], split_subloc1, split_subloc2, split_loc[, 2-3], data_keep[-3], stringsAsFactors = FALSE)
-colnames(data_final)[1:9] <- c("Sample", "Objective", "Location", "Sublocation", "Area", "Spot", "Analysis.date", "Analysis.time", "Acquisition.date.time")
+data_final <- data.frame(split_name[, -2], split_subloc1, split_subloc2, 
+                         split_loc[, 2-3], data_keep[-3], stringsAsFactors = FALSE)
+colnames(data_final)[1:9] <- c("Sample", "Objective", "Location", "Sublocation", 
+                               "Area", "Spot", "Analysis.date", "Analysis.time",
+                               "Acquisition.date.time")
 
 ```
 
 
 ## Format date and time columns
 ```{r}
-data_final[["Analysis.date"]] <- as.Date(data_final[["Analysis.date"]], format = "%d.%m.%Y")
+data_final[["Analysis.date"]] <- as.Date(data_final[["Analysis.date"]],
+                                         format = "%d.%m.%Y")
 data_final[["Analysis.time"]] <- times(data_final[["Analysis.time"]])
 ```
-The column `data_final[["Acquisition.date.time"]]` includes several formats and is therefore left as `character` without convertion to `POSIXct`.
+The column `data_final[["Acquisition.date.time"]]` includes several formats and 
+is therefore left as `character` without convertion to `POSIXct`.
 
 
-## Add columns about site and correct 50x objectives' NAs
+## Add columns with further information and corrects 50x objectives' NAs
 ```{r}
 # extracte the site name based on the ID
 data_final[grep("R-0", data_final[["Sample"]]), "Site"] <- "Ramioul"
@@ -198,7 +216,10 @@ data_final[grep("BU-", data_final[["Sample"]]), "Site"] <- "Buhlen"
 data_final[["Site"]] <- factor(data_final[["Site"]])
 
 # adds the raw material by defining the flint samples, everything else is lydite 
-data_final[["Raw.material"]] <- factor(ifelse(data_final[["Sample"]] %in% c("MU-224", "MU-197", "R-002", "R-006", "R-007", "R-008" ,"R-010" ,"R-013"), "flint", "lydite"))
+data_final[["Raw.material"]] <- factor(ifelse(data_final[["Sample"]] %in% 
+                                                c("MU-224", "MU-197", "R-002", "R-006",
+                                                  "R-007", "R-008" ,"R-010" ,"R-013"),
+                                                  "flint", "lydite"))
 
 # add the tool type - Keilmesser
 data_final[grep("MU-003", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
@@ -246,64 +267,111 @@ data_final[grep("R-013", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
 
 # add the tool type - Prądnick scraper 
 data_final[grep("R-010", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
-
 data_final[grep("BU-115", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
 data_final[["Tool.type"]] <- factor(data_final[["Tool.type"]])
 
 # add the use-wear type - Balve 
-data_final[data_final[["Sample"]] == "MU-003" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "B"
-data_final[data_final[["Sample"]] == "MU-008" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
-data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "D2"
-data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "B"
-data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D2"
-data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-111" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-112" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
-data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "B2"
-data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] == "01", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] == "02", "Use-wear.type"] <- "A"
-data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "F"
-data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "F"
-data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C+A"
-data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "F"
-data_final[data_final[["Sample"]] == "MU-246" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
-data_final[data_final[["Sample"]] == "MU-273" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C/E"
-data_final[data_final[["Sample"]] == "MU-019" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "B2"
-data_final[data_final[["Sample"]] == "MU-025" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "B"
-data_final[data_final[["Sample"]] == "MU-279" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-104" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
-data_final[data_final[["Sample"]] == "MU-119" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-217" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
+data_final[data_final[["Sample"]] == "MU-003" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-008" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "D"
+data_final[data_final[["Sample"]] == "MU-020" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-021" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-041" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-107" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-111" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-112" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-199" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "A"
+data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "B2"
+data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] 
+           == "01", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2" & data_final[["Area"]] 
+           == "02", "Usewear.type"] <- "A"
+data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-197" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C+A"
+data_final[data_final[["Sample"]] == "MU-240" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "F"
+data_final[data_final[["Sample"]] == "MU-246" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-273" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-019" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "B2"
+data_final[data_final[["Sample"]] == "MU-025" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "B"
+data_final[data_final[["Sample"]] == "MU-279" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-104" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "MU-119" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-217" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "A"
 
 # add the use-wear type - Ramioul 
-data_final[data_final[["Sample"]] == "R-002" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
-data_final[data_final[["Sample"]] == "R-006" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "E"
-data_final[data_final[["Sample"]] == "R-007" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "G"
-data_final[data_final[["Sample"]] == "R-008" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "D"
-data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "A"
-data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "G"
-data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C/E"
-data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "G"
-data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "R-002" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "D"
+data_final[data_final[["Sample"]] == "R-006" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "E"
+data_final[data_final[["Sample"]] == "R-007" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-008" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "D"
+data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "A"
+data_final[data_final[["Sample"]] == "R-020" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "R-010" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "G"
+data_final[data_final[["Sample"]] == "R-013" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "D2"
 
 # add the use-wear type - Buhlen
-data_final[data_final[["Sample"]] == "BU-003" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "1", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "BU-032" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "D2"
-data_final[data_final[["Sample"]] == "BU-077" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "3", "Use-wear.type"] <- "C/E"
-data_final[data_final[["Sample"]] == "BU-173" & data_final[["Location"]] == "C" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "BU-128" & data_final[["Location"]] == "D" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[data_final[["Sample"]] == "BU-115" & data_final[["Location"]] == "A" & data_final[["Sublocation"]] == "2", "Use-wear.type"] <- "C"
-data_final[["Use-wear.type"]] <- factor(data_final[["Use-wear.type"]])
+data_final[data_final[["Sample"]] == "BU-003" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-032" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "D2"
+data_final[data_final[["Sample"]] == "BU-077" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "3", "Usewear.type"] <- "C/E"
+data_final[data_final[["Sample"]] == "BU-173" & data_final[["Location"]] == "C" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-128" & data_final[["Location"]] == "D" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "BU-115" & data_final[["Location"]] == "A" &
+             data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
+data_final[["Usewear.type"]] <- factor(data_final[["Usewear.type"]])
 
 # correct information about the used objectives 
 data_final[data_final[["Objective"]] == "50x09", "Objective"] <- "50x095"
@@ -346,7 +414,8 @@ The files will be saved as "`r paste0("~/", file_out, ".[ext]")`".
 
 ## Write to XLSX
 ```{r}
-write.xlsx(list(data = data_final, units = units_var_table), file = paste0(dir_out, file_out, ".xlsx"))
+write.xlsx(list(data = data_final, units = units_var_table), 
+           file = paste0(dir_out, file_out, ".xlsx"))
 ```
 
 
@@ -360,7 +429,8 @@ saveObject(data_final, file = paste0(dir_out, file_out, ".Rbin"))
 ```{r}
 files_out <- c(paste0(dir_out, file_out, ".xlsx"), paste0(dir_out, file_out, ".Rbin"))
 md5_out <- md5sum(files_out)
-info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, row.names = NULL)
+info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, 
+                       row.names = NULL)
 ```
 
 

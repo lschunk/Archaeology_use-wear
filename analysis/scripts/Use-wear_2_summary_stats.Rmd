@@ -15,7 +15,8 @@ output:
     toc_depth: 3
     html_preview: false
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", knit_root_dir = rprojroot::find_rstudio_root_file()) })
+  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", 
+  knit_root_dir = rprojroot::find_rstudio_root_file()) })
 ---
 
 
@@ -71,7 +72,8 @@ library(doBy)
 ```{r}
 data_file <- list.files(dir_in, pattern = "\\.Rbin$", full.names = TRUE)
 md5_in <- md5sum(data_file)
-info_in <- data.frame(file = basename(names(md5_in)), checksum = md5_in, row.names = NULL)
+info_in <- data.frame(file = basename(names(md5_in)), checksum = md5_in, 
+                      row.names = NULL)
 ```
 
 
@@ -129,8 +131,9 @@ nminmaxmeanmedsd <- function(x){
 ### Spots
 ```{r}
 spot <- summaryBy(.~Sample+Location+Sublocation+Area, 
-                  data=imp_data[c("Sample","Location", "Sublocation", "Area" , names(imp_data)[num.var])], 
-                  FUN=nminmaxmeanmedsd)
+                  data = imp_data[c("Sample","Location", "Sublocation", "Area" ,
+                                  names(imp_data)[num.var])], 
+                  FUN = nminmaxmeanmedsd)
 str(spot)
 ```
 
@@ -138,29 +141,47 @@ str(spot)
 ### Tool type 
 ```{r}
 tool <- summaryBy(.~Tool.type+Location+Sublocation, 
-                   data=imp_data[c("Tool.type", "Location", "Sublocation", names(imp_data)[num.var])], 
-                   FUN=nminmaxmeanmedsd)
+                   data = imp_data[c("Tool.type", "Location", "Sublocation",
+                                   names(imp_data)[num.var])], 
+                   FUN = nminmaxmeanmedsd)
 str(tool)
 ```
 
 ### Raw material
 ```{r}
 raw_material <- summaryBy(.~Raw.material+Location+Sublocation, 
-                            data=imp_data[c("Raw.material", "Location", "Sublocation", names(imp_data)[num.var])], FUN=nminmaxmeanmedsd)
+                            data = imp_data[c("Raw.material", "Location", "Sublocation",
+                                           names(imp_data)[num.var])],
+                          FUN = nminmaxmeanmedsd)
 str(raw_material)
+```
+
+### Use-wear type with sample
+```{r}
+wear <- summaryBy(.~Sample+Location+Sublocation+Area+Usewear.type, 
+                            data = imp_data[c("Sample", "Location", "Sublocation",
+                                            "Area","Usewear.type",
+                                            names(imp_data)[num.var])],
+                          FUN = nminmaxmeanmedsd)
+str(wear)
 ```
 
 ### Use-wear type
 ```{r}
-wear <- summaryBy(.~Sample+Location+Sublocation+Area+Use-wear.type, 
-                            data=imp_data[c("Sample", "Location", "Sublocation", "Area","Use-wear.type", names(imp_data)[num.var])], FUN=nminmaxmeanmedsd)
-str(wear)
+use_type <- summaryBy(.~Tool.type+Usewear.type, 
+                            data = imp_data[c("Tool.type","Usewear.type",
+                                             names(imp_data)[num.var])], 
+                          FUN = nminmaxmeanmedsd)
+str(use_type)
 ```
 
 ### Tool type and use-wear type
 ```{r}
-tool_use <- summaryBy(.~Tool.type+Location+Sublocation+Use-wear.type, 
-                            data=imp_data[c("Tool.type", "Location", "Sublocation","Use-wear.type", names(imp_data)[num.var])], FUN=nminmaxmeanmedsd)
+tool_use <- summaryBy(.~Tool.type+Location+Sublocation+Usewear.type, 
+                            data = imp_data[c("Tool.type", "Location",
+                                            "Sublocation","Usewear.type",
+                                             names(imp_data)[num.var])], 
+                          FUN = nminmaxmeanmedsd)
 str(tool_use)
 ```
 
@@ -177,14 +198,15 @@ The file will be saved as "`r paste0("~/", dir_out, ".[ext]")`".
 
 ## Write to XLSX
 ```{r}
-write.xlsx(list(spot = spot, tool = tool, raw_material = raw_material, wear = wear, tool_use = tool_use), 
-           file = paste0(dir_out, file_out, ".xlsx"))
+write.xlsx(list(spot = spot, tool = tool, raw_material = raw_material, 
+                wear = wear, use_type = use_type, tool_use = tool_use), 
+                file = paste0(dir_out, file_out, ".xlsx"))
 ```
 
 
 ## Save R object
 ```{r}
-saveObject(list(spot = spot, tool = tool, raw_material = raw_material, wear = wear, tool_use = tool_use), 
+saveObject(list(spot = spot, tool = tool, raw_material = raw_material, wear = wear, use_type = use_type, tool_use = tool_use), 
            file = paste0(dir_out, file_out, ".Rbin"))
 ```
 
@@ -193,7 +215,8 @@ saveObject(list(spot = spot, tool = tool, raw_material = raw_material, wear = we
 ```{r}
 files_out <- c(paste0(dir_out, file_out, ".xlsx"), paste0(dir_out, file_out, ".Rbin"))
 md5_out <- md5sum(files_out)
-info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, row.names = NULL)
+info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, 
+                       row.names = NULL)
 ```
 
 The checksum (MD5 hashes) of the exported files are:  
