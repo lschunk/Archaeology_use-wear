@@ -37,8 +37,8 @@ dir_out <- "analysis/plots"
 
 Raw data must be located in `r paste0("~/", dir_in)`.  
 Formatted data will be saved in `r paste0("~/", dir_out)`.
-
 The knit directory for this script is the project directory.
+
 ---
 
 
@@ -52,7 +52,6 @@ library(patchwork)
 library(doBy)
 library(ggrepel)
 library(openxlsx)
-library(RColorBrewer)
 library(wesanderson)
 ```
 
@@ -121,55 +120,72 @@ for (i in num.var){
   
   for (j in seq_along(sp)) {
 	p[[j]] <- ggplot(data = sp[[j]], aes_string(x = "Location", y = names(imp_data)[i], colour = "Usewear.type", shape = "Sublocation")) + 
-	     # theme(legend.position = "none") +
 	     # avoids overplotting
 	     geom_jitter(size = 3,  position = position_jitter(width = 0.4, seed = 1)) + 
 	     coord_cartesian(ylim = range_var) + 
 	     theme_classic() +
-	     labs(colour = "use-wear type")
+	     labs(colour = "Use-wear type") +
 	     facet_wrap(~ Sample_material, nrow = 3) +
-	     scale_colour_brewer(palette = "Spectral") +
-	     #scale_colour_hue(limits = levels(sp[[j]][["Usewear.type"]])) +
+	     labs(y = gsub("\\.", " ", names(imp_data)[i])) +
+	     scale_colour_hue(h = c(25,225),limits = levels(sp[[j]][["Usewear.type"]])) +
 	     if(j != 1) ylab(NULL) 
   }
   p_all <- wrap_plots(p) + plot_layout(width = c(8/13, 2/13, 3/13), guides = "collect")  
   
-  #ggarrange(p_all,common.legend = TRUE)
   print(p_all)
   
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_plot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p, path = dir_out, device = "pdf")
+	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 28, height = 20, units = "cm" )
 }
 
 ```
 
 ## Boxplot of all the varaibles combined witht the use-wear type 
 ```{r}
-
 # plot
 for (i in num.var){
   
   p2 <- ggplot(data = imp_data, aes_string(x = "Usewear.type", y = names(imp_data)[i],  fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
-        labs( x = "use-wear type", title = " ") +
-        labs(fill = "tool type") +
-        #scale_fill_brewer(palette = "RdYIBu")
+        labs( x = "Use-wear type", title = " ") +
+        labs(y = gsub("\\.", " ", names(imp_data)[i])) +
+        labs(fill = "Tool type") +
         scale_fill_manual(values=wes_palette(n = 4,name = "Royal1"))
         
-    print(p2)
+  print(p2)
 
-   # saves the plots 
+  # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_boxplot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p2, path = dir_out, device = "pdf")
+	ggsave(filename = file_out, plot = p2, path = dir_out, device = "pdf",width = 20, height = 25, units = "cm")
       
 }  
 
 ```
 
+## Scatterplot of selected varaibles combined witht the use-wear type 
+```{r}
+# plot
+  p3 <- ggplot(data = imp_data, mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +  
+        #geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
+        #geom_jitter(position=position_jitter(2)) + 
+        theme_classic() +
+        labs(fill = "Use-wear type") +
+        scale_colour_hue(h = c(25,230)) +
+        geom_jitter(width = 0.1)
+        
+  print(p3)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_scatterplot_", 
+	                   names(imp_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
+
+	      
+```
 
 
 The files will be saved as "`r paste0("~/", dir_out, ".[ext]")`".
@@ -195,7 +211,6 @@ info_out
 ---
 
 # sessionInfo() and RStudio version
-
 ```{r}
 sessionInfo()
 ```
