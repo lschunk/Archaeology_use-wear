@@ -98,8 +98,8 @@ for (i in num.var) cat("[",i,"] ", names(imp_data)[i], "\n", sep="")
 ---
 
 
-# Plot each of the selected numeric variable 
-## Plot of all samples wiht the raw material, the varaibles and the use-wear type as information
+# Plot each of the selected numeric variables 
+## Plot of all samples with raw material,  variables and use-wear type as information
 ```{r}
 # splits the data in the individual 35 samples
 imp_data[["Sample_material"]] <- paste(imp_data$Raw.material, imp_data$Sample, sep = " ")
@@ -119,7 +119,9 @@ for (i in num.var){
   names(p) <- names(sp)
   
   for (j in seq_along(sp)) {
-	p[[j]] <- ggplot(data = sp[[j]], aes_string(x = "Location", y = names(imp_data)[i], colour = "Usewear.type", shape = "Sublocation")) + 
+	p[[j]] <- ggplot(data = sp[[j]], aes_string(x = "Location", y = names(imp_data)[i],
+	                                            colour = "Usewear.type", shape =
+	                                           "Sublocation")) + 
 	     # avoids overplotting
 	     geom_jitter(size = 3,  position = position_jitter(width = 0.4, seed = 1)) + 
 	     coord_cartesian(ylim = range_var) + 
@@ -137,17 +139,20 @@ for (i in num.var){
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_plot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 28, height = 20, units = "cm" )
+	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 38,
+	       height = 26, units = "cm" )
 }
 
 ```
 
-## Boxplot of all the varaibles combined witht the use-wear type 
+
+## Boxplot of all the variables combined with the use-wear type 
 ```{r}
 # plot
 for (i in num.var){
   
-  p2 <- ggplot(data = imp_data, aes_string(x = "Usewear.type", y = names(imp_data)[i],  fill = "Tool.type")) +
+  p2 <- ggplot(data = imp_data, aes_string(x = "Usewear.type", y = names(imp_data)[i],
+                                           fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
         labs( x = "Use-wear type", title = " ") +
@@ -160,31 +165,76 @@ for (i in num.var){
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_boxplot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p2, path = dir_out, device = "pdf",width = 20, height = 25, units = "cm")
+	ggsave(filename = file_out, plot = p2, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
       
 }  
 
 ```
 
-## Scatterplot of selected varaibles combined witht the use-wear type 
+
+## Scatterplots of selected variables combined with the use-wear type 
 ```{r}
-# plot
-  p3 <- ggplot(data = imp_data, mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +  
-        #geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
-        #geom_jitter(position=position_jitter(2)) + 
-        theme_classic() +
-        labs(fill = "Use-wear type") +
-        scale_colour_hue(h = c(25,230)) +
-        geom_jitter(width = 0.1)
+# plot 
+# plots Sa against Sq
+p3 <- ggplot(data = imp_data) +  
+      geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
+      theme_classic() +
+      labs(colour = "Use-wear type") +
+      scale_colour_hue(h = c(25, 230)) 
         
-  print(p3)
+print(p3)
 
-  # saves the plots 
-  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_scatterplot_", 
-	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_SA_scatterplot_", ".pdf")
+ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
 
-	      
+ 
+# plots epLsar against Asfc 
+p4 <- ggplot(data = imp_data) +  
+      geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Usewear.type)) +
+      theme_classic() +
+      labs(colour = "Use-wear type") +
+      scale_colour_hue(h = c(25, 230)) 
+        
+print(p4) 
+
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Asfc_scatterplot_", ".pdf")
+ggsave(filename = file_out, plot = p4, path = dir_out, device = "pdf")
+
+  
+# plots Sq against Vmc 
+p5 <- ggplot(data = imp_data) +  
+      geom_point(mapping = aes(x = Sq, y = Vmc, colour = Usewear.type)) +
+      theme_classic() +
+      labs(colour = "Use-wear type") +
+      scale_colour_hue(h = c(25, 230)) 
+       
+print(p5)
+
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Sq_scatterplot_", ".pdf")
+ggsave(filename = file_out, plot = p5, path = dir_out, device = "pdf")
+
+
+# plots Mean depth of furrows against mean density of furrows  
+p6 <- ggplot(data = imp_data) +  
+      geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
+                               colour = Usewear.type)) +
+      theme_classic() +
+      labs(colour = "Use-wear type") +
+      scale_colour_hue(h = c(25, 230)) +
+      labs(x = "Mean depth of furrows", y = "Mean density of furrows")
+  
+print(p6)
+
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_scatterplot_", ".pdf")
+ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
+  
+
+
 ```
 
 
