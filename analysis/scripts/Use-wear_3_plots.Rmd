@@ -158,7 +158,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(imp_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values=wes_palette(n = 4,name = "Royal1"))
+        scale_fill_manual(values=wes_palette(n = 4, name = "Royal1"))
         
   print(p2)
 
@@ -172,6 +172,117 @@ for (i in num.var){
 
 ```
 
+
+## Boxplot of all the variables combined with the use-wear type - tool types separated
+```{r}
+# Keilmesser
+# sorts the data according to the technological class 
+sort_data <- imp_data[ , ] %>% arrange(Tool.type)
+# adds indices as row names 
+row.names(sort_data) <- 1:nrow(sort_data)
+# excludes all other tool types  
+KM_data <- sort_data [1:111, ]
+
+for (i in num.var){
+  
+  KM <- ggplot(data = KM_data, aes_string(x = "Usewear.type", y = names(KM_data)[i],
+                                           fill = "Tool.type")) +
+        geom_boxplot() +
+        theme_classic() +
+        labs( x = "Use-wear type", title = " ") +
+        labs(y = gsub("\\.", " ", names(KM_data)[i])) +
+        labs(fill = "Tool type") +
+        scale_fill_manual(values = wes_palette(n = 4, name = "Royal1"))
+        
+  print(KM)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_KM_boxplot", 
+	                   names(KM_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = KM, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
+      
+}  
+
+
+# Pradnick scraper 
+# excludes all other tool types  
+PS_data <- sort_data [112:120, ]
+
+for (i in num.var){
+  
+  PS <- ggplot(data = PS_data, aes_string(x = "Usewear.type", y = names(PS_data)[i],
+                                           fill = "Tool.type")) +
+        geom_boxplot() +
+        theme_classic() +
+        labs( x = "Use-wear type", title = " ") +
+        labs(y = gsub("\\.", " ", names(PS_data)[i])) +
+        labs(fill = "Tool type") +
+        scale_fill_manual(values = "#C93312")
+         
+  print(PS)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PS_boxplot", 
+	                   names(PS_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = PS, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
+      
+}  
+
+
+# Scraper 
+# excludes all other tool types  
+S_data <- sort_data [133:150, ]
+
+for (i in num.var){
+  
+  S <- ggplot(data = S_data, aes_string(x = "Usewear.type", y = names(S_data)[i],
+                                           fill = "Tool.type")) +
+        geom_boxplot() +
+        theme_classic() +
+        labs( x = "Use-wear type", title = " ") +
+        labs(y = gsub("\\.", " ", names(S_data)[i])) +
+        labs(fill = "Tool type") +
+        scale_fill_manual(values = "#DC863B")
+         
+  print(S)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_S_boxplot", 
+	                   names(S_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = S, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
+      
+}  
+
+
+# Pradnick spall 
+# excludes all other tool types  
+LSS_data <- sort_data [121:132, ]
+
+for (i in num.var){
+  
+  LSS <- ggplot(data = LSS_data, aes_string(x = "Usewear.type", y = names(LSS_data)[i],
+                                           fill = "Tool.type")) +
+        geom_boxplot() +
+        theme_classic() +
+        labs( x = "Use-wear type", title = " ") +
+        labs(y = gsub("\\.", " ", names(LSS_data)[i])) +
+        labs(fill = "Tool type") +
+        scale_fill_manual(values = "#DC863B")
+         
+  print(LSS)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_LSS_boxplot", 
+	                   names(LSS_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = LSS, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
+      
+}  
+
+```
 
 ## Scatterplots of selected variables combined with the use-wear type 
 ```{r}
