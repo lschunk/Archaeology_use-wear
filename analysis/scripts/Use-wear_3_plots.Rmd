@@ -53,6 +53,8 @@ library(doBy)
 library(ggrepel)
 library(openxlsx)
 library(wesanderson)
+library(ggfortify)
+library(ggfortify)
 ```
 
 
@@ -270,7 +272,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(LSS_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values = "#DC863B")
+        scale_fill_manual(values =  "#FAEFD1")
          
   print(LSS)
 
@@ -283,6 +285,7 @@ for (i in num.var){
 }  
 
 ```
+
 
 ## Scatterplots of selected variables combined with the use-wear type 
 ```{r}
@@ -344,6 +347,44 @@ print(p6)
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
   
+
+
+```
+
+
+## Principal component analysis 
+```{r}
+imp_data.pca <- prcomp(num.var, scale. = TRUE) 
+
+imp_data.pca$x
+pca <- cbind(imp_data[, 1:9], imp_data.pca$x)
+
+# Using ggfortigy
+a<- autoplot(imp_data.pca, data = pca, colour = "Usewear.type",
+         label = TRUE, label.size = 2,
+         loadings = TRUE, loadings.label = TRUE, loadings.label.size  = 3) # colour should be categorical
+
+print(a)
+
+# using ggplot
+b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Usewear.type)) +
+     stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+     scale_fill_manual(values = wes_palette(n = 11, name = "Royal1", type = "continuous")) + 
+     geom_point(shape = 21, col = "black") +
+     labs(fill = "Use-wear type") +
+     theme_classic()
+
+print(b)
+
+
+c <- b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Tool.type)) +
+          stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+          scale_fill_manual(values = wes_palette(n = 4, name = "FantasticFox1")) +
+          geom_point(shape = 21, col = "black") +
+          labs(fill = "Tool type") +
+          theme_classic()
+
+print(c)
 
 
 ```
