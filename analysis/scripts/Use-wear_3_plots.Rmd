@@ -54,7 +54,7 @@ library(ggrepel)
 library(openxlsx)
 library(wesanderson)
 library(ggfortify)
-library(ggfortify)
+
 ```
 
 
@@ -354,7 +354,7 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 
 ## Principal component analysis 
 ```{r}
-imp_data.pca <- prcomp(num.var, scale. = TRUE) 
+imp_data.pca <- prcomp(imp_data[24:30], scale. = TRUE) 
 
 imp_data.pca$x
 pca <- cbind(imp_data[, 1:9], imp_data.pca$x)
@@ -366,7 +366,13 @@ a<- autoplot(imp_data.pca, data = pca, colour = "Usewear.type",
 
 print(a)
 
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_factor_analysis", ".pdf")
+ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
+  
+
 # using ggplot
+# PCA use-wear type
 b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Usewear.type)) +
      stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
      scale_fill_manual(values = wes_palette(n = 11, name = "Royal1", type = "continuous")) + 
@@ -376,8 +382,12 @@ b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Usewear.type)) +
 
 print(b)
 
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_Usewear", ".pdf")
+ggsave(filename = file_out, plot = b, path = dir_out, device = "pdf")
 
-c <- b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Tool.type)) +
+# PCA tool type 
+c <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Tool.type)) +
           stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
           scale_fill_manual(values = wes_palette(n = 4, name = "FantasticFox1")) +
           geom_point(shape = 21, col = "black") +
@@ -385,6 +395,10 @@ c <- b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Tool.type)) +
           theme_classic()
 
 print(c)
+
+# saves the plot
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_Tool_type", ".pdf")
+ggsave(filename = file_out, plot = c, path = dir_out, device = "pdf")
 
 
 ```
