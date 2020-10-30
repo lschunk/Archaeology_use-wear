@@ -287,6 +287,41 @@ for (i in num.var){
 ```
 
 
+## Histogram of the use-wear types with a big varaiton 
+```{r}
+# only use-wear type A, B, C, E
+# sorts the data according to the use-wear type
+sort_data_U <- imp_data[ , ] %>% arrange(Usewear.type)
+# adds indices as row names 
+row.names(sort_data_U) <- 1:nrow(sort_data_U)
+# excludes all other use-wear types 
+selected_data <- sort_data_U [c(1:21, 28:66, 109:129), ]
+
+
+# plot
+for (i in num.var){
+  
+  p_sel <- ggplot(data = selected_data, aes(x = names(imp_data)[i],fill = Usewear.type)) +
+           geom_histogram(stat = "count") +
+           theme_classic() +
+           labs(x = gsub("\\.", " ", names(imp_data)[i])) +
+           labs(fill = "Usewear type") +
+           scale_fill_manual(values=wes_palette(n = 4, name = "Royal1"))
+  
+  print(p_sel)
+
+  # saves the plots 
+  file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_boxplot_", 
+	                   names(imp_data)[i], ".pdf")
+	ggsave(filename = file_out, plot = p_sel, path = dir_out, device = "pdf", width = 17,
+	       height = 25, units = "cm")
+      
+}  
+
+
+```
+
+
 ## Scatterplots of selected variables combined with the use-wear type 
 ```{r}
 # plot 
@@ -354,16 +389,24 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 
 ## Principal component analysis 
 ```{r}
-imp_data.pca <- prcomp(imp_data[24:30], scale. = TRUE) 
+# uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean, density of furrows, Asfc, HAsfc9 
+imp_data.pca <- prcomp(imp_data[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
 
 imp_data.pca$x
 pca <- cbind(imp_data[, 1:9], imp_data.pca$x)
 
-# Using ggfortigy
-a<- autoplot(imp_data.pca, data = pca, colour = "Usewear.type",
-         label = TRUE, label.size = 2,
-         loadings = TRUE, loadings.label = TRUE, loadings.label.size  = 3) # colour should be categorical
 
+custom.col <- c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#a6cee3",
+                "#9a0f0f", "#d16103", "#fdbf6f", "#ffdb6d", "#985633", "#134680", "#05100c") 
+
+
+# Using ggfortify
+a<- autoplot(imp_data.pca, data = pca, colour = "Usewear.type",
+         loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.size  = 4,  frame = TRUE, frame.type = "norm", frame.fill = "Usewear.typ")) +
+         theme_classic()+
+         scale_colour_manual(values = custom.col) +
+         geom_point(shape = 21, colour = "white", size = 4) 
+         
 print(a)
 
 # saves the plot
@@ -373,10 +416,10 @@ ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
 
 # using ggplot
 # PCA use-wear type
-b <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Usewear.type)) +
-     stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-     scale_fill_manual(values = wes_palette(n = 11, name = "Royal1", type = "continuous")) + 
-     geom_point(shape = 21, col = "black") +
+b <- ggplot(pca, aes(PC1, PC2, fill = Usewear.type, addEllipses = TRUE)) +
+     stat_ellipse(geom = "polygon", alpha = 0.6) +
+     scale_fill_manual(values = custom.col) +
+     geom_point(size = 2, shape = 21, alpha = 1) +
      labs(fill = "Use-wear type") +
      theme_classic()
 
@@ -387,10 +430,10 @@ file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_Usewear", ".pdf"
 ggsave(filename = file_out, plot = b, path = dir_out, device = "pdf")
 
 # PCA tool type 
-c <- ggplot(pca, aes(PC1, PC2, col = Tool.type, fill = Tool.type)) +
-          stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-          scale_fill_manual(values = wes_palette(n = 4, name = "FantasticFox1")) +
-          geom_point(shape = 21, col = "black") +
+c <- ggplot(pca, aes(PC1, PC2, fill = Tool.type, colour = Tool.type)) +
+          stat_ellipse(geom = "polygon") +
+          scale_fill_manual(values = custom.col) +
+          geom_point(size = 2, shape = 21, alpha = 1) +
           labs(fill = "Tool type") +
           theme_classic()
 
