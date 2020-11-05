@@ -180,18 +180,25 @@ for (i in num.var){
 
 ## Boxplot of all the variables combined with the use-wear type 
 ```{r}
+
+# Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F")
+custom.col2 <- data.frame(type = levels(imp_data$Tool.typ), 
+                         col = c( "#0B775E", "#E1BD6D", "#F2300F", "#35274A")) 
+imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
+
+
 # plot
 for (i in num.var){
   
   p2 <- ggplot(data = imp_data, aes_string(x = "Usewear.type", y = names(imp_data)[i],
                                            fill = "Tool.type")) +
         geom_boxplot() +
+        scale_fill_manual(values = custom.col2$col)+
         theme_classic() +
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(imp_data)[i])) +
-        labs(fill = "Tool type") +
-        scale_fill_manual(values=wes_palette(n = 4, name = "Royal1"))
-        
+        labs(fill = "Tool type") 
+       
   print(p2)
 
   # saves the plots 
@@ -224,7 +231,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(KM_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values = wes_palette(n = 4, name = "Royal1"))
+        scale_fill_manual(values = "#0B775E")
         
   print(KM)
 
@@ -250,7 +257,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(PS_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values = "#C93312")
+        scale_fill_manual(values = "#E1BD6D")
          
   print(PS)
 
@@ -276,7 +283,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(S_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values = "#DC863B")
+        scale_fill_manual(values = "#35274A")
          
   print(S)
 
@@ -302,7 +309,7 @@ for (i in num.var){
         labs( x = "Use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(LSS_data)[i])) +
         labs(fill = "Tool type") +
-        scale_fill_manual(values =  "#FAEFD1")
+        scale_fill_manual(values =  "#F2300F")
          
   print(LSS)
 
@@ -421,16 +428,16 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 ```
 
 
-## Scatterplots of selected variables combined with the two tool types: Keilmesser abd Pradnick scraper 
+## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnick scraper 
 ```{r}
 # selects only Keilmesser and Pradnick scraper
 KM_PS <- filter(imp_data, Tool.type == "Keilmesser" | Tool.type == "Pradnick scraper") 
 
 
-custom.col.b <- data.frame(type = unique(KM_PS$Tool.type), 
+custom.col2b <- data.frame(type = unique(KM_PS$Tool.type), 
                          col = c("#0B775E", "#E1BD6D")) 
 
-col.b <- custom.col.b[custom.col.b$type %in% unique(KM_PS[["Tool.type"]]), "col"]
+col2b <- custom.col2b[custom.col2b$type %in% unique(KM_PS[["Tool.type"]]), "col"]
 
 # plot 
 # plots Sa against Sq
@@ -438,7 +445,7 @@ p7 <- ggplot(data = KM_PS) +
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Tool.type)) +
       theme_classic() +
       labs(colour = "Tool type") +
-      scale_colour_manual(values =  col.b)
+      scale_colour_manual(values =  col2b)
         
 print(p7)
 
@@ -532,15 +539,15 @@ imp_data.pca <- prcomp(imp_data[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE)
 
 # Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F")
 custom.col2 <- data.frame(type = levels(imp_data$Tool.typ), 
-                         col = c( "#0B775E", "#E1BD6D", "#35274A" ,"#F2300F")) 
+                         col = c( "#0B775E", "#E1BD6D", "#F2300F", "#35274A")) 
 imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
 
 b <- autoplot(imp_data.pca, data = imp_data, colour = "Tool.type", size = 2,
              loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.colour = "black",                
              loadings.label.size  = 4, loadings.label.hjust = 1, loadings.label.vjust = 1,  
-            frame = TRUE, frame.type = "convex", frame.colour = "Tool.type", frame.alpha = 0) + 
-            theme_classic() +
-            scale_colour_manual(values = custom.col2$col)
+             frame = TRUE, frame.type = "convex", frame.colour = "Tool.type", frame.alpha = 0) + 
+             theme_classic() +
+             scale_colour_manual(values = custom.col2$col)
 print(b)
 
 # saves the plot
