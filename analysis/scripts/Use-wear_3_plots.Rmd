@@ -178,7 +178,7 @@ for (i in num.var){
 ```
 
 
-## Boxplot of all the variables combined with the use-wear type 
+## Boxplot of all the variables combined with the use-wear type (without outliers)
 ```{r}
 
 # Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F")
@@ -187,10 +187,16 @@ custom.col2 <- data.frame(type = levels(imp_data$Tool.typ),
 imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
 
 
+# excludes the outliers 
+# adds the indices as row numbers 
+imp_data <- imp_data %>% mutate(id = row_number())
+imp_data2 <- imp_data[-c(55, 63, 115, 116), ]
+
+
 # plot
 for (i in num.var){
   
-  p2 <- ggplot(data = imp_data, aes_string(x = "Usewear.type", y = names(imp_data)[i],
+  p2 <- ggplot(data = imp_data2, aes_string(x = "Usewear.type", y = names(imp_data)[i],
                                            fill = "Tool.type")) +
         geom_boxplot() +
         scale_fill_manual(values = custom.col2$col)+
@@ -212,15 +218,15 @@ for (i in num.var){
 ```
 
 
-## Boxplot of all the variables combined with the use-wear type - tool types separated
+## Boxplot of all the variables combined with the use-wear type - tool types separated (without outliers)
 ```{r}
 # Keilmesser
 # sorts the data according to the technological class 
-sort_data <- imp_data[ , ] %>% arrange(Tool.type)
+sort_data <- imp_data2[ , ] %>% arrange(Tool.type)
 # adds indices as row names 
 row.names(sort_data) <- 1:nrow(sort_data)
 # excludes all other tool types  
-KM_data <- sort_data [1:111, ]
+KM_data <- sort_data [1:107, ]
 
 for (i in num.var){
   
@@ -246,7 +252,7 @@ for (i in num.var){
 
 # Pradnick scraper 
 # excludes all other tool types  
-PS_data <- sort_data [112:120, ]
+PS_data <- sort_data [108:116, ]
 
 for (i in num.var){
   
@@ -272,7 +278,7 @@ for (i in num.var){
 
 # Scraper 
 # excludes all other tool types  
-S_data <- sort_data [133:150, ]
+S_data <- sort_data [129:146, ]
 
 for (i in num.var){
   
@@ -298,7 +304,7 @@ for (i in num.var){
 
 # Pradnick spall 
 # excludes all other tool types  
-LSS_data <- sort_data [121:132, ]
+LSS_data <- sort_data [117:128, ]
 
 for (i in num.var){
   
@@ -324,7 +330,7 @@ for (i in num.var){
 ```
 
 
-## Histogram of the use-wear types 
+## Histogram of the use-wear types (without outliers)
 ```{r}
 custom.col <- data.frame(type = levels(imp_data$Usewear.typ), 
                          col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f", "#fdbf6f",
@@ -332,11 +338,13 @@ custom.col <- data.frame(type = levels(imp_data$Usewear.typ),
 
 col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"]
 
+
+
 # plot
 for (i in num.var){
   
   
-  p_use <- ggplot(data = imp_data, aes_string(x = names(imp_data)[i])) +
+  p_use <- ggplot(data = imp_data2, aes_string(x = names(imp_data)[i])) +
            geom_histogram(bins = 15, aes(fill = Usewear.type)) +
            theme_classic() +
            labs(x = gsub("\\.", " ", names(imp_data)[i])) +
@@ -357,7 +365,7 @@ for (i in num.var){
 ```
 
 
-## Scatterplots of selected variables combined with the use-wear type 
+## Scatterplots of selected variables combined with the use-wear type (without outliers)
 ```{r}
 
 custom.col <- data.frame(type = levels(imp_data$Usewear.typ), 
@@ -368,7 +376,7 @@ col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"
 
 # plot 
 # plots Sa against Sq
-p3 <- ggplot(data = imp_data) +  
+p3 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
       theme_classic() +
       labs(colour = "Use-wear type") +
@@ -382,7 +390,7 @@ ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
 
  
 # plots epLsar against Asfc 
-p4 <- ggplot(data = imp_data) +  
+p4 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Usewear.type)) +
       theme_classic() +
       labs(colour = "Use-wear type") +
@@ -396,7 +404,7 @@ ggsave(filename = file_out, plot = p4, path = dir_out, device = "pdf")
 
   
 # plots Sq against Vmc 
-p5 <- ggplot(data = imp_data) +  
+p5 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Usewear.type)) +
       theme_classic() +
       labs(colour = "Use-wear type") +
@@ -410,7 +418,7 @@ ggsave(filename = file_out, plot = p5, path = dir_out, device = "pdf")
 
 
 # plots Mean depth of furrows against mean density of furrows  
-p6 <- ggplot(data = imp_data) +  
+p6 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
                                colour = Usewear.type)) +
       theme_classic() +
@@ -428,10 +436,10 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 ```
 
 
-## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnick scraper 
+## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnick scraper (without outliers)
 ```{r}
 # selects only Keilmesser and Pradnick scraper
-KM_PS <- filter(imp_data, Tool.type == "Keilmesser" | Tool.type == "Pradnick scraper") 
+KM_PS <- filter(imp_data2, Tool.type == "Keilmesser" | Tool.type == "Pradnick scraper") 
 
 
 custom.col2b <- data.frame(type = unique(KM_PS$Tool.type), 
@@ -459,7 +467,7 @@ p8 <- ggplot(data = KM_PS) +
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Tool.type)) +
       theme_classic() +
       labs(colour = "Tool type") +
-      scale_colour_manual(values =  col.b)
+      scale_colour_manual(values =  col2b)
         
 print(p8) 
 
@@ -473,7 +481,7 @@ p9 <- ggplot(data = KM_PS) +
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Tool.type)) +
       theme_classic() +
       labs(colour = "Tool type") +
-      scale_colour_manual(values =  col.b)
+      scale_colour_manual(values =  col2b)
        
 print(p9)
 
@@ -488,7 +496,7 @@ p10 <- ggplot(data = KM_PS) +
                                colour = Tool.type)) +
        theme_classic() +
        labs(colour = "Tool type") +
-       scale_colour_manual(values =  col.b) +
+       scale_colour_manual(values =  col2b) +
        labs(x = "Mean depth of furrows", y = "Mean density of furrows")
   
 print(p10)
@@ -502,10 +510,10 @@ ggsave(filename = file_out, plot = p10, path = dir_out, device = "pdf")
 
 
 ## Principal component analysis 
-### PCA Use-wear type
+### PCA Use-wear type (without outliers)
 ```{r}
 # uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean, density of furrows, Asfc, HAsfc9 
-imp_data.pca <- prcomp(imp_data[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
+imp_data.pca <- prcomp(imp_data2[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
 
 
 custom.col1 <- data.frame(type = levels(imp_data$Usewear.typ), 
@@ -514,7 +522,7 @@ custom.col1 <- data.frame(type = levels(imp_data$Usewear.typ),
 imp_data$col <- custom.col1[imp_data$Usewear.typ, "col"]
 
 # Using ggfortify
-a<- autoplot(imp_data.pca, data = imp_data, colour = "Usewear.type", size = 2,
+a<- autoplot(imp_data.pca, data = imp_data2, colour = "Usewear.type", size = 2,
              loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.colour = "black", 
              loadings.label.size  = 4, loadings.label.hjust = 1, loadings.label.vjust = 1,  
              frame = TRUE, frame.type = "convex", frame.colour = "Usewear.type", frame.alpha = 0) + 
@@ -532,17 +540,17 @@ ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
 ```
 
 
-### PCA Tool type
+### PCA Tool type (without outliers)
 ```{r}
 # uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean density of furrows, Asfc, HAsfc9 
-imp_data.pca <- prcomp(imp_data[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
+imp_data.pca <- prcomp(imp_data2[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
 
 # Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F")
 custom.col2 <- data.frame(type = levels(imp_data$Tool.typ), 
                          col = c( "#0B775E", "#E1BD6D", "#F2300F", "#35274A")) 
 imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
 
-b <- autoplot(imp_data.pca, data = imp_data, colour = "Tool.type", size = 2,
+b <- autoplot(imp_data.pca, data = imp_data2, colour = "Tool.type", size = 2,
              loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.colour = "black",                
              loadings.label.size  = 4, loadings.label.hjust = 1, loadings.label.vjust = 1,  
              frame = TRUE, frame.type = "convex", frame.colour = "Tool.type", frame.alpha = 0) + 
