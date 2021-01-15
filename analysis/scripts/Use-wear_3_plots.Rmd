@@ -161,6 +161,7 @@ for (i in num.var){
 	     facet_wrap(~ Sample_material, nrow = 3) +
 	     labs(y = gsub("\\.", " ", names(imp_data)[i])) +
 	     scale_colour_manual(values = col_j) +
+	     theme(text = element_text(size = 23)) + 
 	     if(j != 1) ylab(NULL) 
 
   }
@@ -171,8 +172,8 @@ for (i in num.var){
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_plot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 38,
-	       height = 26, units = "cm" )
+	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 65,
+	       height = 53, units = "cm" )
 }
 
 ```
