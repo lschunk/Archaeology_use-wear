@@ -2,26 +2,13 @@
 title: "Import CSV from ConfoMap ISO25178 - use-wear archaeology"
 author: "Ivan Calandra & Lisa Schunk"
 date: "`r Sys.time()`"
-output:
-  html_document:
-    toc: true
-    toc_depth: 3
-    toc_float: true
-    theme: cerulean
-    highlight: pygments
-    number_sections: true
-  github_document: 
-    toc: true
-    toc_depth: 3
-    html_preview: false
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", 
-  knit_root_dir = rprojroot::find_rstudio_root_file()) })
+output: word_document
 ---
 
 
 ```{r Knitr Options, include=FALSE}
 knitr::opts_chunk$set(comment = NA, message = FALSE, indent = "", error = TRUE)
+
 ```
 
 ---
@@ -39,6 +26,7 @@ The script will:
 ```{r}
 dir_in <- "analysis/raw_data"
 dir_out <- "analysis/derived_data/"
+
 ```
 
 Raw data must be located in `r paste0("~/", dir_in)`.  
@@ -56,6 +44,7 @@ library(tools)
 library(R.utils)
 library(chron)
 library(tidyverse)
+
 ```
 
 
@@ -68,11 +57,13 @@ data_files <- list.files(dir_in, pattern = "\\.csv$", full.names = TRUE)
 md5_in <- md5sum(data_files)
 info_in <- data.frame(files = basename(names(md5_in)), checksum = md5_in, 
                       row.names = NULL)
+
 ```
 
 The checksum (MD5 hashes) of the imported files are:  
 ```{r, echo = FALSE}
 info_in
+
 ```
 
 
@@ -89,6 +80,7 @@ for (i in seq_along(data_files)) {
                             stringsAsFactors = FALSE, na.strings = "*****")
 }
 str(imp_data)
+
 ```
 
 
@@ -98,7 +90,7 @@ str(imp_data)
 # Format data
 ## Merge three datasets
 ```{r}
-# check pairwisely if the three lines of headers are identical among the datasets
+# check pairwise if the three lines of headers are identical among the datasets
 # merges the data based on the three lines of headers while they get only 
 # used in the first CSV file 
 comp <- all(sapply(list(imp_data[[1]][1:3, ], imp_data[[2]][1:3, ]), 
@@ -109,7 +101,9 @@ if (comp == TRUE) {
 } else {
   stop("The headers are not identical among the datasets")
 }
+
 str(merged_data)
+
 ```
 
 
@@ -119,6 +113,7 @@ str(merged_data)
 data_keep_col <- c(1:2, 16:17, 20:22, 24:26, 29:32, 67:100)
 data_keep_rows <- which(merged_data[[1]] != "#")  
 data_keep <- merged_data[data_keep_rows, data_keep_col]
+
 ```
 
 
@@ -127,6 +122,7 @@ data_keep <- merged_data[data_keep_rows, data_keep_col]
 head_data_keep <- unlist(merged_data[2, data_keep_col]) 
 colnames(data_keep) <- gsub("\\.+", "\\.", make.names(head_data_keep))
 colnames(data_keep) <- gsub("\\.$", "", colnames(data_keep)) 
+
 ```
 
 
@@ -140,6 +136,7 @@ ISO <- which(frames == 17)
 furrow <- which(frames == 18)
 diriso <- which(frames %in% 19:20)
 SSFA <- which(frames %in% 21:22)
+
 ```
 
 
@@ -149,6 +146,7 @@ SSFA <- which(frames %in% 21:22)
 colnames(data_keep)[ISO] <- sapply(strsplit(names(data_keep)[ISO], ".", fixed = TRUE),
                                    `[[`, 1)
 colnames(data_keep)[SSFA] <- gsub("^([A-Za-z0-9]+\\.)+", "", colnames(data_keep)[SSFA])
+
 ```
 
 
@@ -163,6 +161,7 @@ units_var <- unlist(merged_data[3, data_keep_col])[var_num]
 names(units_var) <- head_data_keep[var_num] 
 # puts all of it into a data.frame
 units_var_table <- data.frame(variable = names(units_var), unit = units_var) 
+
 ```
 
 
@@ -172,6 +171,7 @@ for (i in var_num) {
   data_keep[[i]] <- gsub(",", "\\.", data_keep[[i]])
   data_keep[[i]] <- as.numeric(data_keep[[i]])
 }
+
 ```
 
 
@@ -182,10 +182,10 @@ stud_name <- gsub("^([A-Za-z0-9_]+( --- ))+", "", data_keep[["Name"]])
 stud_name <- gsub("([A-Za-z0-9_-]*( - ))+", "", stud_name)
 split_name <- do.call(rbind, strsplit(stud_name, "_"))[, 1:3]
 split_loc <- do.call(rbind, strsplit(split_name[, 2], "-"))
+
 # splits location (A1-3,B1-3,C1-3,D1-3) in location (A,B,C,D) and sublocation (1,2,3,4)
 split_subloc1 <- substr(split_loc[,1], 1, 1)
 split_subloc2 <- substr(split_loc[,1], 2, 2)
-
 
 # splits the ID in the separat information 
 data_final <- data.frame(split_name[, -2], split_subloc1, split_subloc2, 
@@ -202,6 +202,7 @@ colnames(data_final)[1:9] <- c("Sample", "Objective", "Location", "Sublocation",
 data_final[["Analysis.date"]] <- as.Date(data_final[["Analysis.date"]],
                                          format = "%d.%m.%Y")
 data_final[["Analysis.time"]] <- times(data_final[["Analysis.time"]])
+
 ```
 The column `data_final[["Acquisition.date.time"]]` includes several formats and 
 is therefore left as `character` without convertion to `POSIXct`.
@@ -250,12 +251,12 @@ data_final[grep("BU-032", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
 data_final[grep("BU-077", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
 data_final[grep("BU-173", data_final[["Sample"]]), "Tool.type"] <- "Keilmesser"
 
-# add the tool type - Prądnick spall
-data_final[grep("MU-104", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
-data_final[grep("MU-119", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
-data_final[grep("MU-217", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+# add the tool type - Prądnik spall
+data_final[grep("MU-104", data_final[["Sample"]]), "Tool.type"] <- "Prądnik spall"
+data_final[grep("MU-119", data_final[["Sample"]]), "Tool.type"] <- "Prądnik spall"
+data_final[grep("MU-217", data_final[["Sample"]]), "Tool.type"] <- "Prądnik spall"
 
-data_final[grep("BU-128", data_final[["Sample"]]), "Tool.type"] <- "Prądnick spall"
+data_final[grep("BU-128", data_final[["Sample"]]), "Tool.type"] <- "Prądnik spall"
 
 # add the tool type - Scraper 
 data_final[grep("MU-019", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
@@ -265,9 +266,9 @@ data_final[grep("MU-279", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
 data_final[grep("R-013", data_final[["Sample"]]), "Tool.type"] <- "Scraper"
 
 
-# add the tool type - Prądnick scraper 
-data_final[grep("R-010", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
-data_final[grep("BU-115", data_final[["Sample"]]), "Tool.type"] <- "Prądnick scraper"
+# add the tool type - Prądnik scraper 
+data_final[grep("R-010", data_final[["Sample"]]), "Tool.type"] <- "Prądnik scraper"
+data_final[grep("BU-115", data_final[["Sample"]]), "Tool.type"] <- "Prądnik scraper"
 data_final[["Tool.type"]] <- factor(data_final[["Tool.type"]])
 
 # add the use-wear type - Balve 
@@ -305,8 +306,10 @@ data_final[data_final[["Sample"]] == "MU-202" & data_final[["Location"]] == "D" 
              data_final[["Sublocation"]] == "2", "Usewear.type"] <- "C"
 data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "D" &
              data_final[["Sublocation"]] == "1", "Usewear.type"] <- "B2"
-data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
-data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" & data_final[["Sublocation"]] == "2" & data_final[["Area"]] 
+data_final[data_final[["Sample"]] == "MU-224" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "1", "Usewear.type"] <- "C"
+data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" &
+             data_final[["Sublocation"]] == "2" & data_final[["Area"]] 
            == "01", "Usewear.type"] <- "E"
 data_final[data_final[["Sample"]] == "MU-232" & data_final[["Location"]] == "B" &
              data_final[["Sublocation"]] == "2" & data_final[["Area"]] 
@@ -377,18 +380,21 @@ data_final[["Usewear.type"]] <- factor(data_final[["Usewear.type"]])
 data_final[data_final[["Objective"]] == "50x09", "Objective"] <- "50x095"
 data_final[data_final[["Objective"]] == "50x07", "Objective"] <- "50x075"
 data_final[["Objective"]] <- factor(data_final[["Objective"]])
+
 ```
 
 
 ## Ignore some columns and reorder columns
 ```{r}
 data_final <- data_final[c(1,54, 56, 55, 3:6, 57, 2, 7:53 )]
+
 ```
 
 
 ## Add units as comment()
 ```{r}
 comment(data_final) <- units_var
+
 ```
 
 Type `comment(data_final)` to check the units of the columns.
@@ -398,6 +404,7 @@ Type `comment(data_final)` to check the units of the columns.
 ```{r}
 str(data_final)
 head(data_final)
+
 ```
 
 
@@ -408,6 +415,7 @@ head(data_final)
 ## Format name of output file
 ```{r}
 file_out <- "Use-wear"
+
 ```
 The files will be saved as "`r paste0("~/", file_out, ".[ext]")`".
 
@@ -416,27 +424,14 @@ The files will be saved as "`r paste0("~/", file_out, ".[ext]")`".
 ```{r}
 write.xlsx(list(data = data_final, units = units_var_table), 
            file = paste0(dir_out, file_out, ".xlsx"))
+
 ```
 
 
 ## Save R object
 ```{r}
 saveObject(data_final, file = paste0(dir_out, file_out, ".Rbin"))
-```
 
-
-## Show files information
-```{r}
-files_out <- c(paste0(dir_out, file_out, ".xlsx"), paste0(dir_out, file_out, ".Rbin"))
-md5_out <- md5sum(files_out)
-info_out <- data.frame(files = basename(names(md5_out)), checksum = md5_out, 
-                       row.names = NULL)
-```
-
-
-The checksum (MD5 hashes) of the exported files are:  
-```{r, echo = FALSE}
-info_out
 ```
 
 
@@ -446,6 +441,7 @@ info_out
 
 ```{r}
 sessionInfo()
+
 ```
 
 RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.

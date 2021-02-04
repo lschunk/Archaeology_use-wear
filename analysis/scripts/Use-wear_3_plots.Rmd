@@ -2,6 +2,7 @@
 title: "Plots - use-wear archaeology"
 author: "Lisa Schunk"
 date: "`r Sys.time()`"
+output: word_document
 ---
 
 ```{r Knitr Options, include=FALSE}
@@ -19,6 +20,7 @@ Scatterplot of each variable will be plotted.
 ```{r}
 dir_in <- "analysis/derived_data/"
 dir_out <- "analysis/plots"
+
 ```
 
 Raw data must be located in `r paste0("~/", dir_in)`.  
@@ -51,12 +53,14 @@ library(ggfortify)
 data_file <- list.files(dir_in, pattern = "\\.Rbin$", full.names = TRUE)
 md5_in <- md5sum(data_file)
 info_in <- data.frame(file = basename(names(md5_in)), checksum = md5_in, row.names = NULL)
+
 ```
 
 
 The checksum (MD5 hashes) of the imported file is:  
 ```{r, echo = FALSE}
 info_in
+
 ```
 
 
@@ -64,6 +68,7 @@ info_in
 ```{r}
 imp_data <- loadObject(data_file)
 str(imp_data)
+
 ```
 
 The imported file is: "`r paste0("~/", data_file)`"  
@@ -75,12 +80,14 @@ The imported file is: "`r paste0("~/", data_file)`"
 ## Define numeric variables
 ```{r}
 num.var <- 24:length(imp_data)
+
 ```
 
 The following variables will be used: 
 
 ```{r, echo=FALSE}
 for (i in num.var) cat("[",i,"] ", names(imp_data)[i], "\n", sep="")
+
 ```
 
 ---
@@ -106,9 +113,9 @@ for (i in num.var) cat("[",i,"] ", names(imp_data)[i], "\n", sep="")
 
 
 custom.col <- data.frame(type = levels(imp_data$Usewear.typ), 
-                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f", "#fdbf6f",
+                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f",
+                                 "#fdbf6f",
                                  "#d16103", "#ffdb6d", "#985633", "#134680", "#05100c")) 
-
 
 ```
 
@@ -237,7 +244,7 @@ for (i in num.var){
 }  
 
 
-# Pradnick scraper 
+# Pradnik scraper 
 # excludes all other tool types  
 PS_data <- sort_data [108:116, ]
 
@@ -289,7 +296,7 @@ for (i in num.var){
 }  
 
 
-# Pradnick spall 
+# Pradnik spall 
 # excludes all other tool types  
 LSS_data <- sort_data [117:128, ]
 
@@ -320,7 +327,8 @@ for (i in num.var){
 ## Histogram of the use-wear types (without outliers)
 ```{r}
 custom.col <- data.frame(type = levels(imp_data$Usewear.typ), 
-                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f", "#fdbf6f",
+                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f",
+                                 "#fdbf6f",
                                  "#d16103", "#ffdb6d", "#985633", "#134680", "#05100c")) 
 
 col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"]
@@ -348,7 +356,6 @@ for (i in num.var){
       
 }  
 
-
 ```
 
 
@@ -356,7 +363,8 @@ for (i in num.var){
 ```{r}
 
 custom.col <- data.frame(type = levels(imp_data$Usewear.typ), 
-                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f", "#fdbf6f",
+                         col = c("#999999", "#52854c", "#c3d7a4", "#487bb6", "#9a0f0f",
+                                 "#fdbf6f",
                                  "#d16103", "#ffdb6d", "#985633", "#134680", "#05100c")) 
 
 col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"]
@@ -423,10 +431,10 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 ```
 
 
-## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnick scraper (without outliers)
+## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnik scraper (without outliers)
 ```{r}
-# selects only Keilmesser and Pradnick scraper
-KM_PS <- filter(imp_data2, Tool.type == "Keilmesser" | Tool.type == "Pradnick scraper") 
+# selects only Keilmesser and Pradnik scraper
+KM_PS <- filter(imp_data2, Tool.type == "Keilmesser" | Tool.type == "Pradnik scraper") 
 
 
 custom.col2b <- data.frame(type = unique(KM_PS$Tool.type), 
@@ -489,10 +497,10 @@ p10 <- ggplot(data = KM_PS) +
 print(p10)
 
 # saves the plot
-file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_KM.PS_scatterplot_", ".pdf")
+file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_KM.PS_scatterplot_",
+                   ".pdf")
 ggsave(filename = file_out, plot = p10, path = dir_out, device = "pdf")
   
-
 ```
 
 
@@ -512,7 +520,8 @@ imp_data$col <- custom.col1[imp_data$Usewear.typ, "col"]
 a<- autoplot(imp_data.pca, data = imp_data2, colour = "Usewear.type", size = 2,
              loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.colour = "black", 
              loadings.label.size  = 4, loadings.label.hjust = 1, loadings.label.vjust = 1,  
-             frame = TRUE, frame.type = "convex", frame.colour = "Usewear.type", frame.alpha = 0) + 
+             frame = TRUE, frame.type = "convex", frame.colour = "Usewear.type", 
+             frame.alpha = 0) + 
              theme_classic() +
              scale_colour_manual(values = custom.col1$col)
          
@@ -523,37 +532,37 @@ print(a)
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_usewear_type", ".pdf")
 ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
   
-
 ```
 
 
 ### PCA Tool type (without outliers)
 ```{r}
-# uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean density of furrows, Asfc, HAsfc9 
+# uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean density of furrows,
+# Asfc, HAsfc9 
 imp_data.pca <- prcomp(imp_data2[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
 
-# Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F")
+# Wes Anderson color palettes Rushmore = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A",
+#"#F2300F")
 custom.col2 <- data.frame(type = levels(imp_data$Tool.typ), 
                          col = c( "#0B775E", "#E1BD6D", "#F2300F", "#35274A")) 
 imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
 
 b <- autoplot(imp_data.pca, data = imp_data2, colour = "Tool.type", size = 2,
-             loadings = TRUE, loadings.colour = "black", loadings.label = TRUE, loadings.label.colour = "black",                
+             loadings = TRUE, loadings.colour = "black", loadings.label = TRUE,
+             loadings.label.colour = "black",                
              loadings.label.size  = 4, loadings.label.hjust = 1, loadings.label.vjust = 1,  
-             frame = TRUE, frame.type = "convex", frame.colour = "Tool.type", frame.alpha = 0) + 
+             frame = TRUE, frame.type = "convex", frame.colour = "Tool.type", 
+             frame.alpha = 0) + 
              theme_classic() +
              scale_colour_manual(values = custom.col2$col)
+
 print(b)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_tool_tpye", ".pdf")
 ggsave(filename = file_out, plot = b, path = dir_out, device = "pdf")
 
-
 ```
-
-
-
 
 The files will be saved as "`r paste0("~/", dir_out, ".[ext]")`".
 
@@ -564,6 +573,7 @@ The files will be saved as "`r paste0("~/", dir_out, ".[ext]")`".
 # sessionInfo() and RStudio version
 ```{r}
 sessionInfo()
+
 ```
 
 RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.
