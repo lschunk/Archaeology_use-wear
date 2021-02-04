@@ -2,26 +2,12 @@
 title: "Plots - use-wear archaeology"
 author: "Lisa Schunk"
 date: "`r Sys.time()`"
-output:
-  html_document:
-    toc: true
-    toc_depth: 3
-    toc_float: true
-    theme: cerulean
-    highlight: pygments
-    number_sections: true
-  github_document: 
-    toc: true
-    toc_depth: 3
-    html_preview: false
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_format = "all", 
-  knit_root_dir = rprojroot::find_rstudio_root_file()) })
 ---
 
 ```{r Knitr Options, include=FALSE}
 knitr::opts_chunk$set(comment=NA, message=FALSE, indent="", error=TRUE)
-````
+
+```
 
 
 # Goal of the script
@@ -570,22 +556,6 @@ ggsave(filename = file_out, plot = b, path = dir_out, device = "pdf")
 
 
 The files will be saved as "`r paste0("~/", dir_out, ".[ext]")`".
-
----
-
-
-# Show plot files information
-```{r}
-info_out <- list.files(path = dir_out, pattern = "\\.pdf$", 
-                       full.names = TRUE) %>% 
-            md5sum()
-```
-
-
-The checksum (MD5 hashes) of the exported files are:  
-```{r, echo = FALSE}
-info_out
-```
 
 
 
