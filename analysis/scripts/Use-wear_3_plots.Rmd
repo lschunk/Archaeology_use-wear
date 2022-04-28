@@ -122,7 +122,7 @@ custom.col <- data.frame(type = levels(imp_data$Usewear.typ),
 
 
 ## Plot of all samples with raw material,  variables and use-wear type as information
-```{r}
+```{r, fig.width = 16, fig.height = 14, dpi = 200}
 # splits the data in the individual 35 samples
 imp_data[["Sample_material"]] <- paste(imp_data$Raw.material, imp_data$Sample, sep = " ")
 
@@ -151,22 +151,21 @@ for (i in num.var){
 	     coord_cartesian(ylim = range_var) + 
 	     theme_classic() +
 	     labs(colour = "Use-wear type") +
-	     facet_wrap(~ Sample_material, nrow = 3) +
+	     facet_wrap(~ Sample_material, nrow = 6) +
 	     labs(y = gsub("\\.", " ", names(imp_data)[i])) +
 	     scale_colour_manual(values = col_j) +
 	     theme(text = element_text(size = 23)) + 
 	     if(j != 1) ylab(NULL) 
 
   }
-  p_all <- wrap_plots(p) + plot_layout(width = c(8/13, 2/13, 3/13), guides = "collect")  
+  p_all <- wrap_plots(p) + plot_layout(width = c(4/7, 1/7, 2/7), guides = "collect")  
+ 
   
-  print(p_all)
-  
-  # saves the plots 
+  #saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_plot_", 
 	                   names(imp_data)[i], ".pdf")
-	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 65,
-	       height = 53, units = "cm" )
+	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 47,
+	       height = 55, units = "cm" )
 }
 
 ```
@@ -195,11 +194,10 @@ for (i in num.var){
         geom_boxplot() +
         scale_fill_manual(values = custom.col2$col)+
         theme_classic() +
-        labs( x = "Use-wear type", title = " ") +
+        labs( x = "use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(imp_data)[i])) +
-        labs(fill = "Tool type") 
+        labs(fill = "artefact category") 
        
-  print(p2)
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_boxplot_", 
@@ -228,12 +226,11 @@ for (i in num.var){
                                            fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
-        labs( x = "Use-wear type", title = " ") +
+        labs( x = "use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(KM_data)[i])) +
-        labs(fill = "Tool type") +
+        labs(fill = "artefact category") +
         scale_fill_manual(values = "#0B775E")
         
-  print(KM)
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_KM_boxplot", 
@@ -254,12 +251,11 @@ for (i in num.var){
                                            fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
-        labs( x = "Use-wear type", title = " ") +
+        labs( x = "use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(PS_data)[i])) +
-        labs(fill = "Tool type") +
+        labs(fill = "artefact category") +
         scale_fill_manual(values = "#E1BD6D")
          
-  print(PS)
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PS_boxplot", 
@@ -280,12 +276,11 @@ for (i in num.var){
                                            fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
-        labs( x = "Use-wear type", title = " ") +
+        labs( x = "use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(S_data)[i])) +
-        labs(fill = "Tool type") +
+        labs(fill = "artefact category") +
         scale_fill_manual(values = "#35274A")
          
-  print(S)
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_S_boxplot", 
@@ -306,12 +301,11 @@ for (i in num.var){
                                            fill = "Tool.type")) +
         geom_boxplot() +
         theme_classic() +
-        labs( x = "Use-wear type", title = " ") +
+        labs( x = "use-wear type", title = " ") +
         labs(y = gsub("\\.", " ", names(LSS_data)[i])) +
-        labs(fill = "Tool type") +
+        labs(fill = "artefact category") +
         scale_fill_manual(values =  "#F2300F")
          
-  print(LSS)
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_LSS_boxplot", 
@@ -343,11 +337,10 @@ for (i in num.var){
            geom_histogram(bins = 15, aes(fill = Usewear.type)) +
            theme_classic() +
            labs(x = gsub("\\.", " ", names(imp_data)[i])) +
-           labs(fill = "Usewear type", y = NULL) +
+           labs(fill = "use-wear type", y = NULL) +
            facet_wrap(~Usewear.type)+
            scale_fill_manual(values =  col)
-  
-  print(p_use)
+
 
   # saves the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_histogram_UW_Type_", 
@@ -374,10 +367,9 @@ col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"
 p3 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
       theme_classic() +
-      labs(colour = "Use-wear type") +
+      labs(colour = "use-wear type") +
       scale_colour_manual(values =  col)
         
-print(p3)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_SA_scatterplot_", ".pdf")
@@ -388,10 +380,9 @@ ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
 p4 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Usewear.type)) +
       theme_classic() +
-      labs(colour = "Use-wear type") +
+      labs(colour = "use-wear type") +
        scale_colour_manual(values =  col)
         
-print(p4) 
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Asfc_scatterplot_", ".pdf")
@@ -402,10 +393,9 @@ ggsave(filename = file_out, plot = p4, path = dir_out, device = "pdf")
 p5 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Usewear.type)) +
       theme_classic() +
-      labs(colour = "Use-wear type") +
+      labs(colour = "use-wear type") +
        scale_colour_manual(values =  col)
        
-print(p5)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Sq_scatterplot_", ".pdf")
@@ -417,11 +407,10 @@ p6 <- ggplot(data = imp_data2) +
       geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
                                colour = Usewear.type)) +
       theme_classic() +
-      labs(colour = "Use-wear type") +
+      labs(colour = "use-wear type") +
        scale_colour_manual(values =  col) +
       labs(x = "Mean depth of furrows", y = "Mean density of furrows")
-  
-print(p6)
+
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_scatterplot_", ".pdf")
@@ -447,10 +436,9 @@ col2b <- custom.col2b[custom.col2b$type %in% unique(KM_PS[["Tool.type"]]), "col"
 p7 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Tool.type)) +
       theme_classic() +
-      labs(colour = "Tool type") +
+      labs(colour = "artefact category") +
       scale_colour_manual(values =  col2b)
         
-print(p7)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_SA_KM.PS_scatterplot_", ".pdf")
@@ -461,10 +449,9 @@ ggsave(filename = file_out, plot = p7, path = dir_out, device = "pdf")
 p8 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Tool.type)) +
       theme_classic() +
-      labs(colour = "Tool type") +
+      labs(colour = "artefact category") +
       scale_colour_manual(values =  col2b)
         
-print(p8) 
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Asfc_KM.PS_scatterplot_", ".pdf")
@@ -475,10 +462,9 @@ ggsave(filename = file_out, plot = p8, path = dir_out, device = "pdf")
 p9 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Tool.type)) +
       theme_classic() +
-      labs(colour = "Tool type") +
+      labs(colour = "artefact category") +
       scale_colour_manual(values =  col2b)
        
-print(p9)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Sq_KM.PS_scatterplot_", ".pdf")
@@ -490,11 +476,10 @@ p10 <- ggplot(data = KM_PS) +
        geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
                                colour = Tool.type)) +
        theme_classic() +
-       labs(colour = "Tool type") +
+       labs(colour = "artefact category") +
        scale_colour_manual(values =  col2b) +
        labs(x = "Mean depth of furrows", y = "Mean density of furrows")
   
-print(p10)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_KM.PS_scatterplot_",
@@ -525,8 +510,6 @@ a<- autoplot(imp_data.pca, data = imp_data2, colour = "Usewear.type", size = 2,
              theme_classic() +
              scale_colour_manual(values = custom.col1$col)
          
-print(a)
-
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_usewear_type", ".pdf")
@@ -556,7 +539,6 @@ b <- autoplot(imp_data.pca, data = imp_data2, colour = "Tool.type", size = 2,
              theme_classic() +
              scale_colour_manual(values = custom.col2$col)
 
-print(b)
 
 # saves the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_tool_tpye", ".pdf")
