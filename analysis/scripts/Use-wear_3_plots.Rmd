@@ -2,7 +2,13 @@
 title: "Plots - use-wear archaeology"
 author: "Lisa Schunk"
 date: "`r Sys.time()`"
-output: word_document
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
 ---
 
 ```{r Knitr Options, include=FALSE}
@@ -29,19 +35,10 @@ The knit directory for this script is the project directory.
 
 ---
 
-
 # Load packages
-```{r}
-library(R.utils)
-library(ggplot2)
-library(tools)
-library(tidyverse)
-library(patchwork)
-library(doBy)
-library(ggrepel)
-library(openxlsx)
-library(wesanderson)
-library(ggfortify)
+```{r Libraries}
+pack_to_load <- c("tools", "openxlsx", "ggplot2", "doBy", "R.utils", "tidyverse", "patchwork", "wesanderson", "ggrepel", "ggfortify")
+sapply(pack_to_load, library, character.only = TRUE, logical.return = TRUE)
 
 ```
 
@@ -56,12 +53,6 @@ info_in <- data.frame(file = basename(names(md5_in)), checksum = md5_in, row.nam
 
 ```
 
-
-The checksum (MD5 hashes) of the imported file is:  
-```{r, echo = FALSE}
-info_in
-
-```
 
 
 # Load data into R object
@@ -93,8 +84,6 @@ for (i in num.var) cat("[",i,"] ", names(imp_data)[i], "\n", sep="")
 ---
 
 
-
-
 # Plot each of the selected numeric variables 
 ## Colour definitions for use-wear types
 ```{r}
@@ -120,10 +109,9 @@ custom.col <- data.frame(type = levels(imp_data$Usewear.typ),
 ```
 
 
-
 ## Plot of all samples with raw material,  variables and use-wear type as information
 ```{r, fig.width = 16, fig.height = 14, dpi = 200}
-# splits the data in the individual 35 samples
+# split the data in the individual 35 samples
 imp_data[["Sample_material"]] <- paste(imp_data$Raw.material, imp_data$Sample, sep = " ")
 
 sp <- split(imp_data, imp_data[["Site"]])
@@ -133,7 +121,7 @@ usewear <- levels(imp_data$Usewear.type)
 
 for (i in num.var){
   
-  # gets the min/max range of the data set 
+  # get the min/max range of the data set 
   range_var <- range(imp_data[[i]]) 
  
    # plot
@@ -161,7 +149,7 @@ for (i in num.var){
   p_all <- wrap_plots(p) + plot_layout(width = c(4/7, 1/7, 2/7), guides = "collect")  
  
   
-  #saves the plots 
+  #save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_plot_", 
 	                   names(imp_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = p_all, path = dir_out, device = "pdf", width = 47,
@@ -180,8 +168,8 @@ custom.col2 <- data.frame(type = levels(imp_data$Tool.typ),
 imp_data$col <- custom.col2[imp_data$Tool.typ, "col"]
 
 
-# excludes the outliers 
-# adds the indices as row numbers 
+# exclude the outliers 
+# add the indices as row numbers 
 imp_data <- imp_data %>% mutate(id = row_number())
 imp_data2 <- imp_data[-c(55, 63, 115, 116), ]
 
@@ -199,7 +187,7 @@ for (i in num.var){
         labs(fill = "artefact category") 
        
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_boxplot_", 
 	                   names(imp_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = p2, path = dir_out, device = "pdf", width = 17,
@@ -213,11 +201,11 @@ for (i in num.var){
 ## Boxplot of all the variables combined with the use-wear type - tool types separated (without outliers)
 ```{r}
 # Keilmesser
-# sorts the data according to the technological class 
+# sort the data according to the technological class 
 sort_data <- imp_data2[ , ] %>% arrange(Tool.type)
-# adds indices as row names 
+# add indices as row names 
 row.names(sort_data) <- 1:nrow(sort_data)
-# excludes all other tool types  
+# exclude all other tool types  
 KM_data <- sort_data [1:107, ]
 
 for (i in num.var){
@@ -232,7 +220,7 @@ for (i in num.var){
         scale_fill_manual(values = "#0B775E")
         
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_KM_boxplot", 
 	                   names(KM_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = KM, path = dir_out, device = "pdf", width = 17,
@@ -242,7 +230,7 @@ for (i in num.var){
 
 
 # Pradnik scraper 
-# excludes all other tool types  
+# exclude all other tool types  
 PS_data <- sort_data [108:116, ]
 
 for (i in num.var){
@@ -257,7 +245,7 @@ for (i in num.var){
         scale_fill_manual(values = "#E1BD6D")
          
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PS_boxplot", 
 	                   names(PS_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = PS, path = dir_out, device = "pdf", width = 17,
@@ -267,7 +255,7 @@ for (i in num.var){
 
 
 # Scraper 
-# excludes all other tool types  
+# exclude all other tool types  
 S_data <- sort_data [129:146, ]
 
 for (i in num.var){
@@ -282,7 +270,7 @@ for (i in num.var){
         scale_fill_manual(values = "#35274A")
          
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_S_boxplot", 
 	                   names(S_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = S, path = dir_out, device = "pdf", width = 17,
@@ -292,7 +280,7 @@ for (i in num.var){
 
 
 # Pradnik spall 
-# excludes all other tool types  
+# exclude all other tool types  
 LSS_data <- sort_data [117:128, ]
 
 for (i in num.var){
@@ -307,7 +295,7 @@ for (i in num.var){
         scale_fill_manual(values =  "#F2300F")
          
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_LSS_boxplot", 
 	                   names(LSS_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = LSS, path = dir_out, device = "pdf", width = 17,
@@ -342,7 +330,7 @@ for (i in num.var){
            scale_fill_manual(values =  col)
 
 
-  # saves the plots 
+  # save the plots 
   file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_histogram_UW_Type_", 
 	                   names(imp_data)[i], ".pdf")
 	ggsave(filename = file_out, plot = p_use, path = dir_out, device = "pdf")
@@ -363,7 +351,7 @@ custom.col <- data.frame(type = levels(imp_data$Usewear.typ),
 col <- custom.col[custom.col$type %in% levels(imp_data[["Usewear.type"]]), "col"]
 
 # plot 
-# plots Sa against Sq
+# plot Sa against Sq
 p3 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Usewear.type)) +
       theme_classic() +
@@ -371,12 +359,12 @@ p3 <- ggplot(data = imp_data2) +
       scale_colour_manual(values =  col)
         
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_SA_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p3, path = dir_out, device = "pdf")
 
  
-# plots epLsar against Asfc 
+# plot epLsar against Asfc 
 p4 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Usewear.type)) +
       theme_classic() +
@@ -384,12 +372,12 @@ p4 <- ggplot(data = imp_data2) +
        scale_colour_manual(values =  col)
         
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Asfc_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p4, path = dir_out, device = "pdf")
 
   
-# plots Sq against Vmc 
+# plot Sq against Vmc 
 p5 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Usewear.type)) +
       theme_classic() +
@@ -397,12 +385,12 @@ p5 <- ggplot(data = imp_data2) +
        scale_colour_manual(values =  col)
        
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Sq_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p5, path = dir_out, device = "pdf")
 
 
-# plots Mean depth of furrows against mean density of furrows  
+# plot Mean depth of furrows against mean density of furrows  
 p6 <- ggplot(data = imp_data2) +  
       geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
                                colour = Usewear.type)) +
@@ -412,7 +400,7 @@ p6 <- ggplot(data = imp_data2) +
       labs(x = "Mean depth of furrows", y = "Mean density of furrows")
 
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
   
@@ -422,7 +410,7 @@ ggsave(filename = file_out, plot = p6, path = dir_out, device = "pdf")
 
 ## Scatterplots of selected variables combined with the two tool types: Keilmesser and Pradnik scraper (without outliers)
 ```{r}
-# selects only Keilmesser and Pradnik scraper
+# select only Keilmesser and Pradnik scraper
 KM_PS <- filter(imp_data2, Tool.type == "Keilmesser" | Tool.type == "Pradnik scraper") 
 
 
@@ -432,7 +420,7 @@ custom.col2b <- data.frame(type = unique(KM_PS$Tool.type),
 col2b <- custom.col2b[custom.col2b$type %in% unique(KM_PS[["Tool.type"]]), "col"]
 
 # plot 
-# plots Sa against Sq
+# plot Sa against Sq
 p7 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Sa, y = Sq, colour = Tool.type)) +
       theme_classic() +
@@ -440,12 +428,12 @@ p7 <- ggplot(data = KM_PS) +
       scale_colour_manual(values =  col2b)
         
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_SA_KM.PS_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p7, path = dir_out, device = "pdf")
 
  
-# plots epLsar against Asfc 
+# plot epLsar against Asfc 
 p8 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Asfc, y = epLsar, colour = Tool.type)) +
       theme_classic() +
@@ -453,12 +441,12 @@ p8 <- ggplot(data = KM_PS) +
       scale_colour_manual(values =  col2b)
         
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Asfc_KM.PS_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p8, path = dir_out, device = "pdf")
 
   
-# plots Sq against Vmc 
+# plot Sq against Vmc 
 p9 <- ggplot(data = KM_PS) +  
       geom_point(mapping = aes(x = Sq, y = Vmc, colour = Tool.type)) +
       theme_classic() +
@@ -466,12 +454,12 @@ p9 <- ggplot(data = KM_PS) +
       scale_colour_manual(values =  col2b)
        
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_Sq_KM.PS_scatterplot_", ".pdf")
 ggsave(filename = file_out, plot = p9, path = dir_out, device = "pdf")
 
 
-# plots Mean depth of furrows against mean density of furrows  
+# plot Mean depth of furrows against mean density of furrows  
 p10 <- ggplot(data = KM_PS) +  
        geom_point(mapping = aes(x = Mean.depth.of.furrows, y = Mean.density.of.furrows,
                                colour = Tool.type)) +
@@ -481,7 +469,7 @@ p10 <- ggplot(data = KM_PS) +
        labs(x = "Mean depth of furrows", y = "Mean density of furrows")
   
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_furrows_KM.PS_scatterplot_",
                    ".pdf")
 ggsave(filename = file_out, plot = p10, path = dir_out, device = "pdf")
@@ -511,7 +499,7 @@ a<- autoplot(imp_data.pca, data = imp_data2, colour = "Usewear.type", size = 2,
              scale_colour_manual(values = custom.col1$col)
          
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_usewear_type", ".pdf")
 ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
   
@@ -520,7 +508,7 @@ ggsave(filename = file_out, plot = a, path = dir_out, device = "pdf")
 
 ### PCA Tool type (without outliers)
 ```{r}
-# uses for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean density of furrows,
+# use for the PCA only selected variables: Sq, SSK, Vmc, Isotropy, Mean density of furrows,
 # Asfc, HAsfc9 
 imp_data.pca <- prcomp(imp_data2[, c(24:25, 42, 47, 51, 54,56)], scale. = TRUE) 
 
@@ -540,7 +528,7 @@ b <- autoplot(imp_data.pca, data = imp_data2, colour = "Tool.type", size = 2,
              scale_colour_manual(values = custom.col2$col)
 
 
-# saves the plot
+# save the plot
 file_out <- paste0(file_path_sans_ext(info_in[["file"]]), "_PCA_tool_tpye", ".pdf")
 ggsave(filename = file_out, plot = b, path = dir_out, device = "pdf")
 
@@ -560,6 +548,12 @@ sessionInfo()
 
 RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.
 
+
+# Cite R packages used
+```{r Citation}
+for (i in pack_to_load) print(citation(i), bibtex = FALSE)
+
+```
 
 ---
 

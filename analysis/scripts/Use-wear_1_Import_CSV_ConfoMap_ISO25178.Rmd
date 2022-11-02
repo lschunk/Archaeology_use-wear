@@ -2,7 +2,13 @@
 title: "Import CSV from ConfoMap ISO25178 - use-wear archaeology"
 author: "Ivan Calandra & Lisa Schunk"
 date: "`r Sys.time()`"
-output: word_document
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
 ---
 
 
@@ -36,14 +42,10 @@ The knit directory for this script is the project directory.
 
 ---
 
-
 # Load packages
-```{r}
-library(openxlsx)
-library(tools)
-library(R.utils)
-library(chron)
-library(tidyverse)
+```{r Libraries}
+pack_to_load <- c("tools", "openxlsx", "R.utils", "chron", "tidyverse")
+sapply(pack_to_load, library, character.only = TRUE, logical.return = TRUE)
 
 ```
 
@@ -57,12 +59,6 @@ data_files <- list.files(dir_in, pattern = "\\.csv$", full.names = TRUE)
 md5_in <- md5sum(data_files)
 info_in <- data.frame(files = basename(names(md5_in)), checksum = md5_in, 
                       row.names = NULL)
-
-```
-
-The checksum (MD5 hashes) of the imported files are:  
-```{r, echo = FALSE}
-info_in
 
 ```
 
@@ -91,7 +87,7 @@ str(imp_data)
 ## Merge three datasets
 ```{r}
 # check pairwise if the three lines of headers are identical among the datasets
-# merges the data based on the three lines of headers while they get only 
+# merge the data based on the three lines of headers while they get only 
 # used in the first CSV file 
 comp <- all(sapply(list(imp_data[[1]][1:3, ], imp_data[[2]][1:3, ]), 
                    FUN = identical, imp_data[[3]][1:3, ]))
@@ -109,7 +105,7 @@ str(merged_data)
 
 ## Keep only interesting columns and rows
 ```{r}
-# keeps only the columns and rows of interest for the analysis 
+# keep only the columns and rows of interest for the analysis 
 data_keep_col <- c(1:2, 16:17, 20:22, 24:26, 29:32, 67:100)
 data_keep_rows <- which(merged_data[[1]] != "#")  
 data_keep <- merged_data[data_keep_rows, data_keep_col]
@@ -128,8 +124,8 @@ colnames(data_keep) <- gsub("\\.$", "", colnames(data_keep))
 
 ## Identify results using frame numbers
 ```{r}
-# combines the results from the different analysis based on the column 
-# numbers (ID from MountainsMAp)
+# combine the results from the different analysis based on the column 
+# number (ID from MountainsMAp)
 frames <- as.numeric(unlist(merged_data[1, data_keep_col]))
 ID <- which(frames == 6)[-(1:2)]
 ISO <- which(frames == 17)
@@ -142,7 +138,7 @@ SSFA <- which(frames %in% 21:22)
 
 ## Shorten the names for parameters
 ```{r}
-# keeps only the important information of the headers 
+# keep only the important information of the headers 
 colnames(data_keep)[ISO] <- sapply(strsplit(names(data_keep)[ISO], ".", fixed = TRUE),
                                    `[[`, 1)
 colnames(data_keep)[SSFA] <- gsub("^([A-Za-z0-9]+\\.)+", "", colnames(data_keep)[SSFA])
@@ -152,14 +148,14 @@ colnames(data_keep)[SSFA] <- gsub("^([A-Za-z0-9]+\\.)+", "", colnames(data_keep)
 
 ## Save units
 ```{r}
-# takes the units which were part of the headers and separates them; 
-# creates a data frame
+# take the units which were part of the headers and separates them; 
+# create a data frame
 var_num <- c(ID, ISO, furrow, diriso, SSFA)
 #extract 'unit' line for considered columns
 units_var <- unlist(merged_data[3, data_keep_col])[var_num] 
-# gets names associated to the units
+# get names associated to the units
 names(units_var) <- head_data_keep[var_num] 
-# puts all of it into a data.frame
+# put all of it into a data.frame
 units_var_table <- data.frame(variable = names(units_var), unit = units_var) 
 
 ```
@@ -183,11 +179,11 @@ stud_name <- gsub("([A-Za-z0-9_-]*( - ))+", "", stud_name)
 split_name <- do.call(rbind, strsplit(stud_name, "_"))[, 1:3]
 split_loc <- do.call(rbind, strsplit(split_name[, 2], "-"))
 
-# splits location (A1-3,B1-3,C1-3,D1-3) in location (A,B,C,D) and sublocation (1,2,3,4)
+# split location (A1-3,B1-3,C1-3,D1-3) in location (A,B,C,D) and sublocation (1,2,3,4)
 split_subloc1 <- substr(split_loc[,1], 1, 1)
 split_subloc2 <- substr(split_loc[,1], 2, 2)
 
-# splits the ID in the separat information 
+# split the ID in the separat information 
 data_final <- data.frame(split_name[, -2], split_subloc1, split_subloc2, 
                          split_loc[, 2-3], data_keep[-3], stringsAsFactors = FALSE)
 colnames(data_final)[1:9] <- c("Sample", "Objective", "Location", "Sublocation", 
@@ -445,6 +441,13 @@ sessionInfo()
 ```
 
 RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.
+
+
+# Cite R packages used
+```{r Citation}
+for (i in pack_to_load) print(citation(i), bibtex = FALSE)
+
+```
 
 
 ---

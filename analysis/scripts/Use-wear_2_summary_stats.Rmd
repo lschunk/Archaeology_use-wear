@@ -2,7 +2,13 @@
 title: "Summary statistics - use-wear archaeology"
 author: "Lisa Schunk"
 date: "`r Sys.time()`"
-output: word_document
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
 ---
 
 
@@ -44,13 +50,10 @@ Formatted data will be saved in `r paste0("~/", dir_out)`.
 The knit directory for this script is the project directory.
 ---
 
-
 # Load packages
-```{r}
-library(openxlsx)
-library(R.utils)
-library(tools)
-library(doBy)
+```{r Libraries}
+pack_to_load <- c("tools", "openxlsx", "R.utils", "doBy")
+sapply(pack_to_load, library, character.only = TRUE, logical.return = TRUE)
 
 ```
 
@@ -66,12 +69,6 @@ info_in <- data.frame(file = basename(names(md5_in)), checksum = md5_in,
 
 ```
 
-
-The checksum (MD5 hashes) of the imported files are:  
-```{r, echo = FALSE}
-info_in
-
-```
 
 
 # Load data into R object
@@ -122,6 +119,7 @@ nminmaxmeanmedsd <- function(x){
 
 ```
 
+
 ##  Compute the summary statistics in groups
 ### Spots
 ```{r}
@@ -144,6 +142,7 @@ str(tool)
 
 ```
 
+
 ### Raw material
 ```{r}
 raw_material <- summaryBy(.~Raw.material+Location+Sublocation, 
@@ -153,6 +152,7 @@ raw_material <- summaryBy(.~Raw.material+Location+Sublocation,
 str(raw_material)
 
 ```
+
 
 ### Use-wear type with sample
 ```{r}
@@ -165,6 +165,7 @@ str(wear)
 
 ```
 
+
 ### Use-wear type
 ```{r}
 use_type <- summaryBy(.~Tool.type+Usewear.type, 
@@ -174,6 +175,7 @@ use_type <- summaryBy(.~Tool.type+Usewear.type,
 str(use_type)
 
 ```
+
 
 ### Tool type and use-wear type
 ```{r}
@@ -225,6 +227,12 @@ sessionInfo()
 
 RStudio version `r readLines("analysis/scripts/RStudioVersion.txt", n = 1)`.
 
+
+# Cite R packages used
+```{r Citation}
+for (i in pack_to_load) print(citation(i), bibtex = FALSE)
+
+```
 
 ---
 
